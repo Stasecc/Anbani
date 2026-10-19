@@ -76,7 +76,7 @@ body {
 button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible, textarea:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
-header { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; }
+header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; }
 h1 { margin: 0 12px 0 0; font-size: 1.35rem; font-weight: 700; letter-spacing: -0.01em; }
 h1 span { font-family: var(--f-glyph); color: var(--accent); font-weight: 700; margin-right: 8px; }
 .daystreak { font-size: 0.9rem; color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -174,7 +174,7 @@ h1 span { font-family: var(--f-glyph); color: var(--accent); font-weight: 700; m
 .note { font-size: 0.82rem; color: var(--muted); }
 
 /* flashcard */
-.card { -webkit-perspective: 1200px; perspective: 1200px; height: 340px; }
+.card { -webkit-perspective: 1200px; perspective: 1200px; height: 370px; }
 .card-inner { position: relative; width: 100%; height: 100%; transition: transform .45s cubic-bezier(.3,.7,.2,1); -webkit-transform-style: preserve-3d; transform-style: preserve-3d; cursor: pointer; }
 .card.flipped .card-inner { transform: rotateY(180deg); }
 .face {
@@ -183,7 +183,7 @@ h1 span { font-family: var(--f-glyph); color: var(--accent); font-weight: 700; m
   box-shadow: 0 10px 30px -18px rgba(60, 20, 40, .45);
   display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;
 }
-.face.back { transform: rotateY(180deg); justify-content: flex-start; text-align: left; align-items: stretch; padding: 16px 18px; }
+.face.back { transform: rotateY(180deg); justify-content: flex-start; text-align: left; align-items: stretch; padding: 16px 18px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .face.back > * + * { margin-top: 10px; }
 .glyph { font-family: var(--f-glyph); font-weight: 500; font-size: 9.5rem; line-height: 1; color: var(--ink); }
 .hint { position: absolute; bottom: 14px; left: 16px; right: 16px; font-size: 0.85rem; color: var(--muted); }
@@ -201,6 +201,8 @@ h1 span { font-family: var(--f-glyph); color: var(--accent); font-weight: 700; m
 .anchor { margin-top: auto !important; background: var(--sunken); border-radius: 12px; padding: 10px 12px; }
 .anchor .w { display: block; font-family: var(--f-glyph); font-size: 1.35rem; }
 .anchor .t { display: block; font-size: 0.9rem; color: var(--muted); }
+.listen { display: block; font-size: 0.82rem; color: var(--muted); margin-top: 6px; }
+.listen a { color: var(--accent); font-weight: 600; text-underline-offset: 3px; }
 
 .row { display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px; gap: 10px; }
 
@@ -226,6 +228,18 @@ h1 span { font-family: var(--f-glyph); color: var(--accent); font-weight: 700; m
 .feedback .g { font-family: var(--f-glyph); font-size: 2.4rem; line-height: 1; color: var(--accent); }
 .feedback p { margin: 0; }
 .feedback b { color: var(--accent); }
+.opt small { display: block; font-size: 0.72rem; font-weight: 500; opacity: .75; margin-top: 3px; line-height: 1.15; }
+.pair { font-size: 0.85rem; color: var(--muted); }
+.pair .gl { font-size: 1.05rem; letter-spacing: 0; }
+.sound-how { font-size: 0.82rem; color: var(--muted); line-height: 1.3; margin-top: 2px; }
+.hright { display: flex; align-items: center; }
+.themebtn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); display: inline-flex; align-items: center; justify-content: center; margin-left: 10px; padding: 0; flex: none; }
+.themebtn svg { width: 18px; height: 18px; }
+.guide-box { display: grid; grid-gap: 8px; gap: 8px; color: var(--ink); font-size: 0.88rem; }
+.stable { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.stable th { text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; padding: 4px 6px 6px 0; }
+.stable td { padding: 6px 6px 6px 0; border-top: 1px solid var(--line); vertical-align: top; }
+.stable .gl { font-size: 1.3rem; letter-spacing: 0; margin-right: 6px; }
 .stats { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .stats b { color: var(--ink); }
 
@@ -282,7 +296,7 @@ textarea { width: 100%; min-height: 70px; font: 0.78rem/1.35 ui-monospace, Menlo
 }
 @media (max-width: 380px) {
   .glyph { font-size: 8rem; }
-  .card { height: 320px; }
+  .card { height: 360px; }
   .tab { font-size: 0.78rem; }
   .prompt .word { font-size: 2.4rem; }
   .hero-top { grid-template-columns: 84px minmax(0, 1fr); }
@@ -302,6 +316,10 @@ body { margin: 0; }
     <div id="homeDyn"></div>
     <footer>
       <details>
+        <summary>Как произносить похожие звуки</summary>
+        <div class="guide-box" id="guideHome"></div>
+      </details>
+      <details>
         <summary>Как работает путь</summary>
         <div class="inner">
           <ul>
@@ -317,6 +335,8 @@ body { margin: 0; }
       <details>
         <summary>Настройки и резервная копия</summary>
         <div class="inner">
+          <div>Тема оформления:</div>
+          <div class="btns" id="themeset"></div>
           <div>Цель на день, ответов:</div>
           <div class="btns" id="goalset"></div>
           <div>Код прогресса — сохрани его в заметках, чтобы перенести прогресс на другое устройство или восстановить после очистки браузера.</div>
@@ -341,7 +361,7 @@ body { margin: 0; }
       <button class="tab" role="tab" data-mode="blitz">Блиц 60 сек</button>
     </div>
     <main class="stage" id="stage" aria-live="polite"></main>
-    <div class="note">Апостроф (к', п', т', ц', ч') — сжатый звук без выдоха. «гх» — это ღ, «къ» — это ყ, h — лёгкий выдох ჰ.</div>
+    <details><summary>Как произносить похожие звуки</summary><div class="guide-box" id="guideTrain"></div></details>
   </section>
 
   <section class="room" id="exam" hidden></section>
@@ -395,7 +415,25 @@ const WORDS = [
  ['ღვინო','гхвино','вино',5],['ჩაი','чаи','чай',5],['ძაღლი','дзагхли','собака',5],['შენ','шэн','ты',5],['გამარჯობა','гамарджоба','привет',5],['მადლობა','мадлоба','спасибо',5],['ხაჭაპური',"хач'ап'ури",'хачапури',5],['მაღაზია','магхазиа','магазин',5],
 ].map(([w,t,m,d]) => ({w,t,m,d}));
 
-const NOTE = {"т":"с выдохом","т'":"сжатый, без выдоха","к":"с выдохом","к'":"сжатый, без выдоха","п":"с выдохом","п'":"сжатый, без выдоха","ц":"с выдохом","ц'":"сжатый, без выдоха","ч":"с выдохом","ч'":"сжатый, без выдоха","къ":"глубокий, из горла","гх":"звонкое г с трением","h":"лёгкий выдох","х":"грубое, глубокое"};
+/* every look-alike sound gets one short tag (shown everywhere) and a how-to line */
+const SOUND = {
+  "т":  { tag: "с выдохом", how: "Как русское «т», но после него лёгкий выдох — ладонь у рта чувствует воздух." },
+  "т'": { tag: "сжатый, без воздуха", how: "Задержи дыхание и скажи «т» коротким щелчком — воздуха нет." },
+  "к":  { tag: "с выдохом", how: "Как русское «к», но после него лёгкий выдох — ладонь у рта чувствует воздух." },
+  "к'": { tag: "сжатый, без воздуха", how: "Задержи дыхание и скажи «к» коротким щелчком — воздуха нет." },
+  "къ": { tag: "глубокий, из горла", how: "Тоже сжатый, но ещё глубже — из самого горла. Поначалу можно говорить как к', поймут." },
+  "п":  { tag: "с выдохом", how: "Как русское «п», но после него лёгкий выдох. Не «ф»!" },
+  "п'": { tag: "сжатый, без воздуха", how: "Сомкни губы, задержи дыхание и скажи «п» щелчком — воздуха нет." },
+  "ц":  { tag: "с выдохом", how: "Как русское «ц», с лёгким выдохом после." },
+  "ц'": { tag: "сжатый, без воздуха", how: "Резкое «ц» на задержанном дыхании, без воздуха." },
+  "ч":  { tag: "с выдохом", how: "Как русское «ч», с лёгким выдохом после." },
+  "ч'": { tag: "сжатый, без воздуха", how: "Резкое «ч» на задержанном дыхании, без воздуха." },
+  "гх": { tag: "г с трением", how: "Звонкое «г» с трением, как южнорусское «г» в «гарно». Не обычное г (это გ)." },
+  "х":  { tag: "грубое, из горла", how: "Как русское «х», но глубже и грубее, с хрипотцой." },
+  "h":  { tag: "лёгкий выдох", how: "Просто выдох, как английское h в «hello». Не грубое х (это ხ)." }
+};
+const NOTE = {}; Object.keys(SOUND).forEach(k => { NOTE[k] = SOUND[k].tag; });
+const PAIR = { 'თ': ['ტ'], 'ტ': ['თ'], 'ქ': ['კ', 'ყ'], 'კ': ['ქ', 'ყ'], 'ყ': ['კ', 'ქ'], 'ფ': ['პ'], 'პ': ['ფ'], 'ც': ['წ'], 'წ': ['ც'], 'ჩ': ['ჭ'], 'ჭ': ['ჩ'], 'ხ': ['ჰ'], 'ჰ': ['ხ'], 'ღ': ['გ'], 'გ': ['ღ'] };
 const GROUPS = ['ვკპჰ','ბნწ','მშძქ','ოთლღრ','ეუჟ','თტ','ქკ','ფპ','ცწ','ჩჭ','კყ','ხჰ','ლღ'];
 function kin(g) { const s = new Set(); GROUPS.forEach(gr => { if (gr.indexOf(g) >= 0) Array.from(gr).forEach(c => { if (c !== g) s.add(c); }); }); return Array.from(s); }
 
@@ -482,6 +520,22 @@ function hard() { return knownLetters().filter(x => { const c = card(x.g); retur
 function dayStreak() { let n = 0, i = st.days[today()] ? 0 : 1; while (st.days[dayKey(i)]) { n++; i++; } return n; }
 const LOCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
 const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+function forvo(w) { return 'https://forvo.com/word/' + encodeURIComponent(w) + '/#ka'; }
+function soundLabel(s) { return esc(s) + (SOUND[s] ? `<small>${SOUND[s].tag}</small>` : ''); }
+function soundText(s) { return '«' + esc(s) + '»' + (SOUND[s] ? ' ' + SOUND[s].tag : ''); }
+function pairLine(x) {
+  const ps = PAIR[x.g]; if (!ps) return '';
+  return `<div class="pair">Не путай: ${ps.map(g => `<span class="gl">${g}</span> ${soundText(BY[g].s)}`).join(' · ')}</div>`;
+}
+function soundGuide() {
+  const rows = [['თ', 'ტ'], ['ქ', 'კ'], ['ფ', 'პ'], ['ც', 'წ'], ['ჩ', 'ჭ']];
+  return `<div>В грузинском пять пар похожих согласных. <b>Без апострофа</b> (к, т, п, ц, ч) — звук <b>с выдохом</b>: как русский, но после него лёгкий выдох. <b>С апострофом</b> (к', т', п', ц', ч') — <b>сжатый</b>: задержи дыхание и скажи звук коротким щелчком, воздуха нет.</div>
+  <div>Проверка: поднеси ладонь ко рту — на звуке с выдохом почувствуешь воздух, на сжатом нет.</div>
+  <table class="stable"><tr><th>С выдохом</th><th>Сжатый</th><th>Пример</th></tr>${rows.map(r => `<tr><td><span class="gl">${r[0]}</span>${esc(BY[r[0]].s)}</td><td><span class="gl">${r[1]}</span>${esc(BY[r[1]].s)}</td><td>${BY[r[0]].w} / ${BY[r[1]].w}</td></tr>`).join('')}</table>
+  <div>Живое произношение: на обороте каждой карточки есть ссылки «Послушать» — записи людей на сайте Forvo. Для некоторых слов записи может не быть.</div>
+  <div>Ещё четыре особых звука:</div>
+  <table class="stable">${['ყ', 'ღ', 'ხ', 'ჰ'].map(g => `<tr><td style="white-space:nowrap"><span class="gl">${g}</span>${esc(BY[g].s)}</td><td>${SOUND[BY[g].s].how}</td></tr>`).join('')}</table>`;
+}
 function starsHTML(s) { return `<span class="stars" aria-label="${s} из 3 звёзд">${'★'.repeat(s)}<span class="off">${'★'.repeat(3 - s)}</span></span>`; }
 
 /* ---------- views ---------- */
@@ -496,7 +550,8 @@ function show(v) {
   try { window.scrollTo(0, 0); } catch (e) {}
 }
 function refresh() { if (view === 'home') renderHome(); else if (view === 'train') renderTrainHeader(); }
-function goHome() { stopBlitz(); exam = null; show('home'); renderHome(); }
+let afterHome = null;   /* hook: the installed app applies a waiting update here */
+function goHome() { stopBlitz(); exam = null; show('home'); renderHome(); if (afterHome) afterHome(); }
 function openTrain(scope, mode, letter) {
   stopBlitz(); st.scope = scope; if (mode) st.mode = mode; save();
   forced = letter || null; last = null;
@@ -603,7 +658,7 @@ function renderHome() {
   else btns += `<button class="btn primary" id="hGo">${st.total ? 'Продолжить' : 'Начать'} уровень ${cur}</button>`;
   const acc = st.total ? Math.round(st.correct / st.total * 100) + '%' : '—';
   $('homeDyn').innerHTML = `
-    <header><h1><span>ანბანი</span>Анбани</h1><div class="daystreak">${ds ? `<b>${ds}</b> ${plural(ds, 'день', 'дня', 'дней')} подряд` : 'Серия дней: начни сегодня'}</div></header>
+    <header><h1><span>ანბანი</span>Анбани</h1><div class="hright"><div class="daystreak">${ds ? `<b>${ds}</b> ${plural(ds, 'день', 'дня', 'дней')} подряд` : 'Серия дней: начни сегодня'}</div><button class="themebtn" id="themeBtn" aria-label="Тема: ${THEME_NAME[theme]}. Нажми, чтобы сменить">${THEME_ICON[theme]}</button></div></header>
     <section class="hero" aria-label="Общий прогресс">
       <div class="hero-top">
         <div class="ring-wrap">
@@ -628,6 +683,7 @@ function renderHome() {
       <div class="kpi"><b>${st.best}</b><span>лучшая серия подряд</span></div>
       <div class="kpi"><b>${st.blitzBest}</b><span>рекорд блица</span></div>
     </section>`;
+  $('themeBtn').onclick = () => { setTheme(THEME_NEXT[theme]); toast('Тема: ' + THEME_NAME[theme]); };
   if ($('hDue')) $('hDue').onclick = () => openTrain('due', st.mode === 'words' || st.mode === 'trace' ? 'flash' : null);
   if ($('hGo')) $('hGo').onclick = () => openTrain(cur);
   if ($('hExam')) $('hExam').onclick = () => startExam(cur);
@@ -743,7 +799,8 @@ function statusTag(g) {
 
 function flash() {
   const x = pickLetter(); if (!x) return emptyState(); last = x.g;
-  const note = NOTE[x.s] ? `<div class="sound-note">${NOTE[x.s]}</div>` : '';
+  const note = SOUND[x.s] ? `<div class="sound-note">${SOUND[x.s].tag}</div>` : '';
+  const how = SOUND[x.s] ? `<div class="sound-how">${SOUND[x.s].how}</div>` : '';
   $('stage').innerHTML = `
     <div class="card" id="card">
       <div class="card-inner" id="cardInner" role="button" tabindex="0" aria-label="Перевернуть карточку">
@@ -754,8 +811,10 @@ function flash() {
         </div>
         <div class="face back">
           <div class="back-head"><div class="g">${x.g}</div><div><div class="sound">${esc(x.s)}</div>${note}</div></div>
+          ${how}
           <p class="assoc">${x.a}</p>
-          <div class="anchor"><span class="w">${x.w}</span><span class="t">${esc(x.wt)} — ${esc(x.wm)}</span></div>
+          ${pairLine(x)}
+          <div class="anchor"><span class="w">${x.w}</span><span class="t">${esc(x.wt)} — ${esc(x.wm)}</span><span class="listen">Послушать, как говорят люди: <a href="${forvo(x.g)}" target="_blank" rel="noopener">буква ${x.g}</a> · <a href="${forvo(x.w)}" target="_blank" rel="noopener">слово ${x.w}</a></span></div>
         </div>
       </div>
     </div>
@@ -774,7 +833,7 @@ function flash() {
   $('flip').onclick = flip;
 }
 function feedbackHTML(ok, x) {
-  const head = ok ? 'Верно.' : `Это <span style="font-family:var(--f-glyph)">${x.g}</span> — «${esc(x.s)}».`;
+  const head = ok ? 'Верно.' : `Это <span style="font-family:var(--f-glyph)">${x.g}</span> — ${soundText(x.s)}.`;
   return `<div class="feedback ${ok ? 'ok' : 'no'}"><div class="g">${x.g}</div><p>${head} ${x.a}</p></div>`;
 }
 function quizShell(promptHTML, labels, cls) {
@@ -798,25 +857,25 @@ function grade(ok, btns, ri, ci, fbHTML, g) {
 function l2s() {
   const x = pickLetter(); if (!x) return emptyState(); last = x.g;
   const opts = letterOptions(x);
-  const btns = quizShell(`<div class="label">Как читается?</div><div class="glyph">${x.g}</div>`, opts.map(o => esc(o.s)), '');
+  const btns = quizShell(`<div class="label">Как читается?</div><div class="glyph">${x.g}</div>`, opts.map(o => soundLabel(o.s)), '');
   const ri = opts.indexOf(x);
   btns.forEach((b, i) => b.onclick = () => {
     if (answered) return;
     const ok = i === ri;
-    const extra = ok ? '' : `<div class="feedback no" style="margin-top:8px"><div class="g">${opts[i].g}</div><p>«${esc(opts[i].s)}» — это ${opts[i].g}: ${opts[i].a}</p></div>`;
+    const extra = ok ? '' : `<div class="feedback no" style="margin-top:8px"><div class="g">${opts[i].g}</div><p>${soundText(opts[i].s)} — это ${opts[i].g}: ${opts[i].a}</p></div>`;
     grade(ok, btns, ri, i, feedbackHTML(ok, x) + extra, x.g);
   });
 }
 function s2l() {
   const x = pickLetter(); if (!x) return emptyState(); last = x.g;
   const opts = letterOptions(x);
-  const note = NOTE[x.s] ? `<div class="sub">${NOTE[x.s]}</div>` : '';
+  const note = SOUND[x.s] ? `<div class="sub"><b>${SOUND[x.s].tag}</b></div><div class="sub">${SOUND[x.s].how}</div>` : '';
   const btns = quizShell(`<div class="label">Найди букву</div><div class="big-sound">${esc(x.s)}</div>${note}`, opts.map(o => o.g), 'g');
   const ri = opts.indexOf(x);
   btns.forEach((b, i) => b.onclick = () => {
     if (answered) return;
     const ok = i === ri;
-    const extra = ok ? '' : `<div class="feedback no" style="margin-top:8px"><div class="g">${opts[i].g}</div><p>А ${opts[i].g} — это «${esc(opts[i].s)}»: ${opts[i].a}</p></div>`;
+    const extra = ok ? '' : `<div class="feedback no" style="margin-top:8px"><div class="g">${opts[i].g}</div><p>А ${opts[i].g} — это ${soundText(opts[i].s)}: ${opts[i].a}</p></div>`;
     grade(ok, btns, ri, i, feedbackHTML(ok, x) + extra, x.g);
   });
 }
@@ -919,7 +978,7 @@ function blitzQ() {
     <div class="blitz-top"><span>Очки: ${blitz.score}</span><span id="tl">60 с</span></div>
     <div class="timer"><i id="tbar" style="width:100%"></i></div>
     <div class="prompt"><div class="glyph">${x.g}</div></div>
-    <div class="options">${opts.map((o, i) => `<button class="opt" data-i="${i}">${esc(o.s)}</button>`).join('')}</div>`;
+    <div class="options">${opts.map((o, i) => `<button class="opt" data-i="${i}">${soundLabel(o.s)}</button>`).join('')}</div>`;
   tickBlitz();
   const btns = Array.from($('stage').querySelectorAll('.opt')), ri = opts.indexOf(x);
   let done = false;
@@ -993,8 +1052,8 @@ function examQ() {
     prompt = `<div class="label">Прочитай слово</div><div class="word">${q.w.w}</div>`;
   } else {
     opts = letterOptions(q.x); ri = opts.indexOf(q.x);
-    if (q.t === 'l2s') { labels = opts.map(o => esc(o.s)); cls = ''; prompt = `<div class="label">Как читается?</div><div class="glyph">${q.x.g}</div>`; }
-    else { labels = opts.map(o => o.g); cls = 'g'; prompt = `<div class="label">Найди букву</div><div class="big-sound">${esc(q.x.s)}</div>${NOTE[q.x.s] ? `<div class="sub">${NOTE[q.x.s]}</div>` : ''}`; }
+    if (q.t === 'l2s') { labels = opts.map(o => soundLabel(o.s)); cls = ''; prompt = `<div class="label">Как читается?</div><div class="glyph">${q.x.g}</div>`; }
+    else { labels = opts.map(o => o.g); cls = 'g'; prompt = `<div class="label">Найди букву</div><div class="big-sound">${esc(q.x.s)}</div>${SOUND[q.x.s] ? `<div class="sub"><b>${SOUND[q.x.s].tag}</b></div>` : ''}`; }
   }
   $('exam').innerHTML = `
     <div class="topbar"><button class="back" id="exQuit">← Выйти</button><div class="tt">Экзамен · Уровень ${e.n}</div></div>
@@ -1034,7 +1093,7 @@ function examResult(early) {
   save();
   const missLetters = Array.from(new Set(e.mistakes.filter(q => q.x).map(q => q.x.g)));
   const details = e.mistakes.map(q => q.x
-    ? `<div class="feedback no"><div class="g">${q.x.g}</div><p>«${esc(q.x.s)}» — ${q.x.a}</p></div>`
+    ? `<div class="feedback no"><div class="g">${q.x.g}</div><p>${soundText(q.x.s)} — ${q.x.a}</p></div>`
     : `<div class="feedback plain no"><p><span style="font-family:var(--f-glyph);font-size:1.2rem">${q.w.w}</span> — <b>${esc(q.w.t)}</b>, «${esc(q.w.m)}».<br><span style="font-size:.88rem">${wordBreakdown(q.w)}</span></p></div>`).join('');
   let head, unlock = '', btns;
   if (passed) {
@@ -1071,6 +1130,46 @@ document.addEventListener('keydown', e => {
   }
   if (view === 'train' && st.mode === 'flash' && $('yes')) { if (e.key === 'ArrowRight') $('yes').click(); if (e.key === 'ArrowLeft') $('no').click(); }
 });
+
+/* ---------- theme ---------- */
+const THEME_KEY = 'anbani-theme';
+const THEME_NAME = { auto: 'как в системе', dark: 'тёмная', light: 'светлая' };
+const THEME_NEXT = { auto: 'dark', dark: 'light', light: 'auto' };
+const THEME_ICON = {
+  auto: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg>',
+  dark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>',
+  light: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>'
+};
+const hostTheme = document.documentElement.getAttribute('data-theme');
+let theme = 'auto';
+try { const t = localStorage.getItem(THEME_KEY); if (THEME_NAME[t]) theme = t; } catch (e) {}
+function isDark() {
+  const a = document.documentElement.getAttribute('data-theme');
+  if (a) return a === 'dark';
+  return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+}
+function applyTheme() {
+  const r = document.documentElement;
+  if (theme === 'auto') { if (hostTheme) r.setAttribute('data-theme', hostTheme); else r.removeAttribute('data-theme'); }
+  else r.setAttribute('data-theme', theme);
+  const m = document.querySelector('meta[name="theme-color"]');
+  if (m) m.setAttribute('content', isDark() ? '#15111a' : '#7a1f3d');
+}
+function setTheme(t) {
+  theme = t; try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
+  applyTheme(); renderThemeSet(); if (view === 'home') renderHome();
+}
+function renderThemeSet() {
+  const g = $('themeset'); g.innerHTML = '';
+  [['auto', 'Как в системе'], ['light', 'Светлая'], ['dark', 'Тёмная']].forEach(o => {
+    const c = document.createElement('button'); c.className = 'chip'; c.textContent = o[1];
+    c.setAttribute('aria-pressed', theme === o[0] ? 'true' : 'false');
+    c.onclick = () => setTheme(o[0]);
+    g.appendChild(c);
+  });
+}
+applyTheme();
+if (window.matchMedia) { const mq = window.matchMedia('(prefers-color-scheme: dark)'); const f = () => { if (theme === 'auto') applyTheme(); }; if (mq.addEventListener) mq.addEventListener('change', f); else if (mq.addListener) mq.addListener(f); }
 
 /* ---------- settings: goal, backup, reset ---------- */
 function renderGoal() {
@@ -1120,9 +1219,43 @@ $('resetBtn').onclick = () => {
 setInterval(() => { if (!blitz && !exam) refresh(); }, 60e3);
 document.addEventListener('visibilitychange', () => { if (!document.hidden && !blitz && !exam) refresh(); });
 
-function start(d) { if (d && d.session) session = d.session; renderGoal(); show('home'); renderHome(); }
+function start(d) {
+  if (d && d.session) session = d.session;
+  const g = soundGuide(); $('guideHome').innerHTML = g; $('guideTrain').innerHTML = g;
+  renderGoal(); renderThemeSet(); show('home'); renderHome();
+}
 if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(() => ({ session: session }));
 if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude.hot.ready(start); else start((window.claude && window.claude.hot && window.claude.hot.data) || {});
+
+/* PWA: self-update — checks for a new version whenever the app is opened or brought back */
+const APP_VERSION = '20261019222421';
+let pendingUpdate = false, updateToastShown = false;
+function applyUpdateIfIdle() {
+  if (!pendingUpdate) return;
+  if (view === 'home' && !exam && !blitz) {
+    try { sessionStorage.setItem('anbani-session', JSON.stringify(session)); sessionStorage.setItem('anbani-updated', '1'); sessionStorage.setItem('anbani-tried', pendingUpdate); } catch (e) {}
+    location.reload();
+  } else if (!updateToastShown) { updateToastShown = true; toast('Вышло обновление — оно установится, когда вернёшься на главный экран.'); }
+}
+afterHome = applyUpdateIfIdle;
+function checkUpdate() {
+  if (!window.fetch) return;
+  fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => {
+    if (!j || !j.v || j.v === APP_VERSION) return;
+    let tried = null; try { tried = sessionStorage.getItem('anbani-tried'); } catch (e) {}
+    if (tried === j.v) return;   /* already reloaded once for this version: the new page is still on its way, try again later */
+    pendingUpdate = j.v; applyUpdateIfIdle();
+  }).catch(() => {});
+  if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) navigator.serviceWorker.getRegistration().then(r => { if (r) r.update(); }).catch(() => {});
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkUpdate(); });
+window.addEventListener('pageshow', () => checkUpdate());
+setInterval(checkUpdate, 20 * 60e3);
+setTimeout(checkUpdate, 2500);
+try {
+  const ss = sessionStorage.getItem('anbani-session'); if (ss) { session = JSON.parse(ss); sessionStorage.removeItem('anbani-session'); }
+  if (sessionStorage.getItem('anbani-updated')) { sessionStorage.removeItem('anbani-updated'); if (sessionStorage.getItem('anbani-tried') === APP_VERSION) setTimeout(() => toast('Приложение обновлено до новой версии'), 400); }
+} catch (e) {}
 
 /* PWA: offline + install hint */
 if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); }); }
