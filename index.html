@@ -201,8 +201,15 @@ h1 span { font-family: var(--f-glyph); color: var(--accent); font-weight: 700; m
 .anchor { margin-top: auto !important; background: var(--sunken); border-radius: 12px; padding: 10px 12px; }
 .anchor .w { display: block; font-family: var(--f-glyph); font-size: 1.35rem; }
 .anchor .t { display: block; font-size: 0.9rem; color: var(--muted); }
-.listen { display: block; font-size: 0.82rem; color: var(--muted); margin-top: 6px; }
-.listen a { color: var(--accent); font-weight: 600; text-underline-offset: 3px; }
+.plays { display: flex; flex-wrap: wrap; margin: 0 -6px -6px 0; }
+.play { display: inline-flex; align-items: center; border: 1px solid var(--line); background: var(--surface); color: var(--accent); border-radius: 999px; padding: 6px 12px 6px 9px; font-size: 0.85rem; font-weight: 600; margin: 0 6px 6px 0; line-height: 1.2; }
+.play svg { width: 14px; height: 14px; margin-right: 6px; flex: none; }
+.play .gl { color: inherit; letter-spacing: 0; margin-left: 4px; }
+.play.big { padding: 10px 18px 10px 14px; font-size: 0.95rem; margin: 6px 0 0; }
+.play.mini { padding: 5px; margin: 0 0 0 6px; vertical-align: middle; }
+.play.mini svg { margin: 0; }
+.play.playing { background: var(--accent-soft); }
+.ver { text-align: center; font-size: 0.75rem; color: var(--muted); padding-top: 4px; font-variant-numeric: tabular-nums; }
 
 .row { display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px; gap: 10px; }
 
@@ -333,8 +340,14 @@ body { margin: 0; }
         </div>
       </details>
       <details>
+        <summary>Что нового</summary>
+        <div class="inner" id="whatsNew"></div>
+      </details>
+      <details>
         <summary>Настройки и резервная копия</summary>
         <div class="inner">
+          <div>Озвучка:</div>
+          <div class="btns" id="voiceset"></div>
           <div>Тема оформления:</div>
           <div class="btns" id="themeset"></div>
           <div>Цель на день, ответов:</div>
@@ -346,6 +359,7 @@ body { margin: 0; }
           <div class="msg" id="ioMsg" role="status"></div>
         </div>
       </details>
+      <div class="ver" id="ver"></div>
     </footer>
   </section>
 
@@ -371,39 +385,39 @@ body { margin: 0; }
 
 <script>
 const L = [
- ['ა','а',1,'აფთიაქი','аптиаки','аптека','<b>Аист</b>: внизу тело-чаша, вверх уходит изогнутая шея с головой. Аист → «а»'],
- ['ბ','б',2,'ბათუმი','батуми','Батуми','<b>Бомба</b>: круглая, с фитилём-завитком сверху. Бомба → «б»'],
- ['გ','г',3,'გამარჯობა','гамарджоба','привет','<b>Гусь</b>: внизу круглое тело, сверху маленькая голова-завиток. Гусь → «г»'],
- ['დ','д',2,'დიახ','диах','да (вежливо)','<b>Дельфин</b> в прыжке: кольцо-тело и хвост, уходящий вниз влево. Дельфин → «д»'],
- ['ე','э',1,'ერთი','эрти','один','<b>Колодец</b>: подкова «U» с короткой левой стенкой. Крикни в колодец «Э-э!» → «э»'],
- ['ვ','в',2,'ვაშლი','вашли','яблоко','<b>Цифра 3</b>, один в один. «Вася получил тройку» → «в»'],
- ['ზ','з',3,'ზღვა','згхва','море','<b>Змея</b>, свернувшаяся восьмёркой, с хвостиком сверху. Змея → «з»'],
- ['თ','т',3,'თბილისი','тбилиси','Тбилиси','<b>Тоннель</b>: две арки, левая замкнута в кольцо. Тоннель → «т»'],
- ['ი','и',1,'ია','иа','фиалка','<b>Иглу</b>: одна арка, как ледяной домик. Иглу → «и»'],
- ['კ',"к'",4,'კაფე',"к'афэ",'кафе','<b>Крючок</b>: тройка с маленькой головой, свисает под строку. Крючок → «к\'»'],
- ['ლ','л',2,'ლარი','лари','лари (деньги)','<b>Лодка</b> на трёх волнах: три горба и хвост вниз. Лодка → «л»'],
- ['მ','м',1,'მაღაზია','магхазиа','магазин','<b>Мешок</b> с ручкой, загнутой влево (как знак ∂). Мешок → «м»'],
- ['ნ','н',1,'ნახვამდის','нахвамдис','до свидания','<b>Нота</b>: кружок и высокая ножка с флажком. Ловушка: похожа на русскую «б», но это «н»'],
- ['ო','о',1,'ორი','ори','два','<b>Две арки</b>, как латинская m. Ловушка: «О-о, это не m!» → «о»'],
- ['პ',"п'",4,'პური',"п'ури",'хлеб','<b>Пружинка</b> над подковой. Пружина → «п\'»'],
- ['ჟ','ж',5,'ჟურნალი','журнали','журнал','<b>Жестяная банка</b>: колодец ე с откинутой крышкой-флажком. Жесть → «ж»'],
- ['რ','р',1,'რესტორანი',"рэст'орани",'ресторан','<b>Рука машет</b>: арка, левая лапа взмахнула вверх. Рука → «р»'],
- ['ს','с',2,'სამი','сами','три','<b>Сапог</b>: высокое голенище слева, носок справа. Сапог → «с»'],
- ['ტ',"т'",4,'ტაქსი',"т'акси",'такси','<b>Термометр</b>: шарик с воткнутой палочкой. Термометр → «т\'»'],
- ['უ','у',1,'უნივერსიტეტი',"унивэрсит'эт'и",'университет','<b>Удочка</b>: колодец ე с леской-завитком сверху. Удочка → «у»'],
- ['ფ','п',3,'ფული','пули','деньги','<b>Пенсне</b>: две петли рядом, как очки. Пенсне → «п» (с выдохом)'],
- ['ქ','к',3,'ქუჩა','куча','улица','<b>Клюшка</b>: высокая палка с маленьким крючком, свисает под строку. Клюшка → «к» (с выдохом)'],
- ['ღ','гх',5,'ღვინო','гхвино','вино','<b>Сердечко</b> ღ, которым украшают ники. Ловушка: у ლ три горба, у ღ — два'],
- ['ყ','къ',4,'ყავა','къава','кофе','<b>Латинская y</b>. Игрек кашлянул: «къ!»'],
- ['შ','ш',5,'შაურმა','шаурма','шаурма','<b>Мешок м в шапке</b>: как მ, но с завитком-шапочкой. Шапка → «ш»'],
- ['ჩ','ч',5,'ჩაი','чаи','чай','<b>Стул</b> (латинская h). Сели на стул пить чай → «ч»'],
- ['ც','ц',5,'ცა','ца','небо','<b>Цепочка</b>: подкова, правый край закручен колечком. Цепь → «ц»'],
- ['ძ','дз',5,'ძაღლი','дзагхли','собака','<b>Латинская d</b>: кружок с прямой палкой. D + z → «дз»'],
- ['წ',"ц'",4,'წყალი',"ц'къали",'вода','<b>Царь</b>: как ნ, только в короне. Царь → «ц\'»'],
- ['ჭ',"ч'",4,'ჭაჭა',"ч'ач'а",'чача','<b>Чек</b>: крючок с перекладиной, похож на значок $. Чек → «ч\'»'],
- ['ხ','х',3,'ხაჭაპური',"хач'ап'ури",'хачапури','<b>Хата</b> с высокой трубой (латинская b). Хата → «х»'],
- ['ჯ','дж',5,'ჯინსი','джинси','джинсы','<b>Джентльмен</b> закинул ногу на ногу: скрещённые линии. Джентльмен → «дж»'],
- ['ჰ','h',5,'ჰაერი','hаэри','воздух','<b>Тройка с паром</b>: над 3 поднимается завиток-выдох. Пар, выдох → «h»'],
+ ['ა','а',1,'აფთიაქი','аптиаки','аптека','<b>Аист в гнезде</b>: внизу круглое гнездо-чаша, из него вверх тянется изогнутая шея с головой. Буква низкая, не выходит за строку. Аист → «а»'],
+ ['ბ','б',2,'ბათუმი','батуми','Батуми','<b>Бомба</b>: круглый шар, сверху фитиль-завиток торчит над строкой. Бомба → «б». Не путай с ნ (там прямая ножка с флажком)'],
+ ['გ','г',3,'გამარჯობა','гамарджоба','привет','<b>Груша</b>: маленький хвостик-головка сверху, большое круглое брюшко опускается под строку. Груша → «г»'],
+ ['დ','д',2,'დიახ','диах','да (вежливо)','<b>Дельфин в прыжке</b>: петля-тело поднимается над строкой, хвост уходит вниз влево. Дельфин → «д». Не путай с ღ: она ниже и из двух открытых горбов'],
+ ['ე','э',1,'ერთი','эрти','один','<b>Эхо в колодце</b>: глубокий колодец-«U» уходит под строку, левая стенка короткая и загнута. Крикни в колодец «Э-э!» → «э»'],
+ ['ვ','в',2,'ვაშლი','вашли','яблоко','<b>Цифра 3</b>: верхняя и нижняя дуга одинаковые, нижняя под строкой. «Вот тройка» → «в». Не путай с კ (там верх маленький)'],
+ ['ზ','з',3,'ზღვა','згхва','море','<b>Змея</b> свернулась восьмёркой, кончик хвоста торчит сверху слева. Змея → «з»'],
+ ['თ','т',3,'თბილისი','тбилиси','Тбилиси','<b>Тоннель</b>: две арки, левая замкнута в кольцо. Тоннель → «т» (с выдохом). Не путай с ო, где обе арки открыты'],
+ ['ი','и',1,'ია','иа','фиалка','<b>Иглу</b>: одна низкая арка, как ледяной домик. Иглу → «и»'],
+ ['კ',"к'",4,'კაფე',"к'афэ",'кафе','<b>Капля на крючке</b>: маленький крючок сверху, большая капля-брюшко висит под строкой. Крючок → «к\'» (сжатый). Не путай с ვ, где обе половинки равные'],
+ ['ლ','л',2,'ლარი','лари','лари (деньги)','<b>Лодка на волнах</b>: сверху три гребня-волны, снизу длинный изгиб-лодка уходит влево под строку. Лодка → «л». У ღ гребней два'],
+ ['მ','м',1,'მაღაზია','магхазиа','магазин','<b>Мышка</b>: круглое тельце, справа поднимается хвост и загибается влево. Мышка → «м». Не путай с ძ: там палка прямая'],
+ ['ნ','н',1,'ნახვამდის','нахвамдис','до свидания','<b>Нота</b>: кружок-головка внизу, высокая ножка с флажком наверху. Нота → «н». Ловушка: похожа на русскую «б», но это «н»'],
+ ['ო','о',1,'ორი','ори','два','<b>Две открытые арки</b>, как латинская m. Ловушка: «О, это не m!» → «о». Если левая арка замкнута — это თ'],
+ ['პ',"п'",4,'პური',"п'ури",'хлеб','<b>Пружина</b>: сверху пружинка-зигзаг над строкой, снизу подкова. Пружина → «п\'» (сжатый)'],
+ ['ჟ','ж',5,'ჟურნალი','журнали','журнал','<b>Жестяная банка</b> с откинутой крышкой: колодец ე, сверху флажок-крышка. Жесть → «ж»'],
+ ['რ','р',1,'რესტორანი',"рэст'орани",'ресторан','<b>Рука машет</b>: арка, левый конец взлетает вверх с крючком, как поднятая рука. Рука → «р»'],
+ ['ს','с',2,'სამი','сами','три','<b>Сапог</b>: высокое голенище слева торчит над строкой, справа круглый носок. Сапог → «с»'],
+ ['ტ',"т'",4,'ტაქსი',"т'акси",'такси','<b>Тыква</b> с завитком-хвостиком сверху: большой круглый плод. Тыква → «т\'» (сжатый)'],
+ ['უ','у',1,'უნივერსიტეტი',"унивэрсит'эт'и",'университет','<b>Удочка</b>: колодец ე, а сверху закинута леска-завиток. Удочка → «у»'],
+ ['ფ','п',3,'ფული','пули','деньги','<b>Пенсне</b>: две петли-линзы рядом, нижняя уходит под строку. Пенсне → «п» (с выдохом). Не «ф»!'],
+ ['ქ','к',3,'ქუჩა','куча','улица','<b>Клюшка</b>: высокая палка от верха до низа, посередине слева маленький крюк. Клюшка → «к» (с выдохом)'],
+ ['ღ','гх',5,'ღვინო','гхвино','вино','<b>Сердечко</b> — так ღ ставят в никах: два горба и хвост вниз. С сердечка начинается ღვინო (вино) → «гх»'],
+ ['ყ','къ',4,'ყავა','къава','кофе','<b>Латинская y</b>: две ветки сверху, хвост уходит под строку. Игрек кашлянул из горла: «къ!»'],
+ ['შ','ш',5,'შაურმა','шаурма','шаурма','<b>Мышка в шапке</b>: та же მ, но сверху шапочка-завиток. Шапка → «ш»'],
+ ['ჩ','ч',5,'ჩაი','чаи','чай','<b>Стул</b> (как латинская h): высокая спинка и сиденье. Сели на стул пить чай → «ч» (с выдохом)'],
+ ['ც','ц',5,'ცა','ца','небо','<b>Цепь</b>: длинная дуга опускается под строку, правый конец закручен в колечко-звено. Цепь → «ц» (с выдохом)'],
+ ['ძ','дз',5,'ძაღლი','дзагхли','собака','<b>Латинская d</b>: кружок и прямая высокая палка. D + z → «дз». У მ хвост загнут, у ძ прямой'],
+ ['წ',"ц'",4,'წყალი',"ц'къали",'вода','<b>Царь</b>: как нота ნ, только на верхушке корона. Царь → «ц\'» (сжатый)'],
+ ['ჭ',"ч'",4,'ჭაჭა',"ч'ач'а",'чача','<b>Чек со знаком $</b>: вертикаль перечёркнута, внизу петля. Чек → «ч\'» (сжатый)'],
+ ['ხ','х',3,'ხაჭაპური',"хач'ап'ури",'хачапури','<b>Хата с трубой</b> (как латинская b): высокая труба и круглый дом. Хата → «х»'],
+ ['ჯ','дж',5,'ჯინსი','джинси','джинсы','<b>Джентльмен</b> закинул ногу на ногу: линии перекрещиваются, внизу петля. Джентльмен → «дж»'],
+ ['ჰ','h',5,'ჰაერი','hаэри','воздух','<b>Тройка с паром</b>: над цифрой 3 поднимается завиток — выдох. Пар, выдох → «h»'],
 ].map(([g,s,d,w,wt,wm,a]) => ({g,s,d,w,wt,wm,a}));
 const BY = Object.fromEntries(L.map(x => [x.g, x]));
 
@@ -414,6 +428,13 @@ const WORDS = [
  ['კაფე',"к'афэ",'кафе',4],['პური',"п'ури",'хлеб',4],['ტაქსი',"т'акси",'такси',4],['ჭაჭა',"ч'ач'а",'чача',4],['წყალი',"ц'къали",'вода',4],['ყავა','къава','кофе',4],['ბანკი',"банк'и",'банк',4],
  ['ღვინო','гхвино','вино',5],['ჩაი','чаи','чай',5],['ძაღლი','дзагхли','собака',5],['შენ','шэн','ты',5],['გამარჯობა','гамарджоба','привет',5],['მადლობა','мадлоба','спасибо',5],['ხაჭაპური',"хач'ап'ури",'хачапури',5],['მაღაზია','магхазиа','магазин',5],
 ].map(([w,t,m,d]) => ({w,t,m,d}));
+const AUDIO = {"ა": "audio/f4004f9401.mp3", "აფთიაქი": "audio/b3b2ddbd46.mp3", "ბა": "audio/f2778b719c.mp3", "ბათუმი": "audio/72263483ec.mp3", "გა": "audio/b6aadad50f.mp3", "გამარჯობა": "audio/1094cd1a70.mp3", "და": "audio/8262dc632e.mp3", "დიახ": "audio/1b58fd80f5.mp3", "ე": "audio/5cc42eb382.mp3", "ერთი": "audio/0d6f2da9e4.mp3", "ვა": "audio/1459d77164.mp3", "ვაშლი": "audio/462d6fce46.mp3", "ზა": "audio/d8340bfd30.mp3", "ზღვა": "audio/bf53cafe65.mp3", "თა": "audio/44420d8c2e.mp3", "თბილისი": "audio/557fb75ee5.mp3", "ი": "audio/3e083f50c8.mp3", "ია": "audio/92bffae001.mp3", "კა": "audio/9b99747143.mp3", "კაფე": "audio/606de02120.mp3", "ლა": "audio/480c4d4368.mp3", "ლარი": "audio/ce574fda44.mp3", "მა": "audio/ca100cb1f4.mp3", "მაღაზია": "audio/4471ba3ef0.mp3", "ნა": "audio/0a35b12b65.mp3", "ნახვამდის": "audio/31b5609bfe.mp3", "ო": "audio/a9643cdc3b.mp3", "ორი": "audio/95885e210a.mp3", "პა": "audio/8709d63e80.mp3", "პური": "audio/58b14dbe65.mp3", "ჟა": "audio/40faf4ea50.mp3", "ჟურნალი": "audio/d7455702ac.mp3", "რა": "audio/bce5eeccbf.mp3", "რესტორანი": "audio/52aa45bc48.mp3", "სა": "audio/47f74b1714.mp3", "სამი": "audio/97523ec35d.mp3", "ტა": "audio/bbd6683d95.mp3", "ტაქსი": "audio/a72a794464.mp3", "უ": "audio/8d4dca6a0b.mp3", "უნივერსიტეტი": "audio/2eec26a1f7.mp3", "ფა": "audio/fd42213ceb.mp3", "ფული": "audio/15ebe49a06.mp3", "ქა": "audio/7b0fc011c6.mp3", "ქუჩა": "audio/bdaaf1a34c.mp3", "ღა": "audio/5a84e11f3b.mp3", "ღვინო": "audio/c45d68f066.mp3", "ყა": "audio/a62a0cb4a7.mp3", "ყავა": "audio/f22753fda4.mp3", "შა": "audio/18594b34b7.mp3", "შაურმა": "audio/8a436210b7.mp3", "ჩა": "audio/a82ba13396.mp3", "ჩაი": "audio/6bc8b59f77.mp3", "ცა": "audio/9abb4e7ae5.mp3", "ძა": "audio/b5445e2e79.mp3", "ძაღლი": "audio/67b113e065.mp3", "წა": "audio/1282dda842.mp3", "წყალი": "audio/c0654df3fa.mp3", "ჭა": "audio/620c4c7cab.mp3", "ჭაჭა": "audio/00e2b8c65f.mp3", "ხა": "audio/5a38ed4672.mp3", "ხაჭაპური": "audio/7e2d96bf0f.mp3", "ჯა": "audio/da7ac902db.mp3", "ჯინსი": "audio/523cc0f093.mp3", "ჰა": "audio/d93fe7d46c.mp3", "ჰაერი": "audio/cd0ad7b2f8.mp3", "მამა": "audio/463b9cf7e5.mp3", "მე": "audio/36640baf9e.mp3", "არა": "audio/c9988b03aa.mp3", "ნუ": "audio/0a274a4e9d.mp3", "დედა": "audio/748611d0e9.mp3", "ბანანი": "audio/78984f5f14.mp3", "ლიმონი": "audio/f5a4cf964c.mp3", "ვარ": "audio/dc0116b5bc.mp3", "ქალაქი": "audio/9fbc14059d.mp3", "გული": "audio/68d96d8b8c.mp3", "ოთხი": "audio/8dca6e8ed3.mp3", "ხუთი": "audio/066e9c301e.mp3", "ათი": "audio/03bb4df892.mp3", "ბანკი": "audio/a22c621bc9.mp3", "შენ": "audio/f8b5686cc3.mp3", "მადლობა": "audio/74634f41f5.mp3"};
+const APP_VER = '1.4', BUILD = '20.10.2026';
+const CHANGES = [
+  ['1.4', ['Озвучка прямо в приложении: кнопка воспроизведения у каждой буквы и слова, работает без интернета', 'Переработаны ассоциации — сверены с формой букв, добавлены отличия от похожих букв', 'Номер версии и список изменений']],
+  ['1.3', ['Тёмная тема', 'Подписи к похожим звукам: «с выдохом», «сжатый», «глубокий»', 'Приложение обновляется само']],
+  ['1.2', ['Путь из 6 уровней, готовность и экзамены вместо дней']]
+];
 
 /* every look-alike sound gets one short tag (shown everywhere) and a how-to line */
 const SOUND = {
@@ -453,7 +474,7 @@ const KEY = 'mkhedruli-cards-v2', OLDKEY = 'mkhedruli-cards-v1';
 const MIN = 60e3, HOUR = 60 * MIN, DAY = 24 * HOUR;
 const IV = [0, 2 * MIN, 30 * MIN, DAY, 3 * DAY, 7 * DAY];   // wait after reaching step n
 const LEARNED = 3;
-function fresh() { return { v: 3, cards: {}, scope: 1, mode: 'flash', goal: 40, days: {}, total: 0, correct: 0, best: 0, blitzBest: 0, trace: true, passed: {}, exams: {}, readyShown: {} }; }
+function fresh() { return { v: 3, autoplay: true, cards: {}, scope: 1, mode: 'flash', goal: 40, days: {}, total: 0, correct: 0, best: 0, blitzBest: 0, trace: true, passed: {}, exams: {}, readyShown: {} }; }
 let st = fresh();
 function load() {
   try {
@@ -520,7 +541,23 @@ function hard() { return knownLetters().filter(x => { const c = card(x.g); retur
 function dayStreak() { let n = 0, i = st.days[today()] ? 0 : 1; while (st.days[dayKey(i)]) { n++; i++; } return n; }
 const LOCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
 const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
-function forvo(w) { return 'https://forvo.com/word/' + encodeURIComponent(w) + '/#ka'; }
+const PLAY_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.4-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>';
+const VOWELS = 'აეიოუ';
+function syl(x) { return VOWELS.indexOf(x.g) >= 0 ? x.g : x.g + 'ა'; }
+let player = null, playingBtn = null;
+try { player = new Audio(); player.preload = 'auto'; player.addEventListener('ended', () => { if (playingBtn) playingBtn.classList.remove('playing'); playingBtn = null; }); } catch (e) {}
+function say(t, btn) {
+  const src = AUDIO[t]; if (!player || !src) return;
+  try {
+    if (playingBtn) playingBtn.classList.remove('playing');
+    playingBtn = btn || null; if (btn) btn.classList.add('playing');
+    player.pause(); player.src = src;
+    const p = player.play(); if (p && p.catch) p.catch(() => { if (btn) btn.classList.remove('playing'); });
+  } catch (e) {}
+}
+function autoSay(t) { if (st.autoplay) say(t); }
+function playBtn(t, label, cls) { return AUDIO[t] ? `<button type="button" class="play${cls ? ' ' + cls : ''}" data-say="${t}" aria-label="Послушать ${t}">${PLAY_SVG}${label || ''}</button>` : ''; }
+document.addEventListener('click', e => { const b = e.target.closest ? e.target.closest('[data-say]') : null; if (!b) return; e.preventDefault(); say(b.getAttribute('data-say'), b); });
 function soundLabel(s) { return esc(s) + (SOUND[s] ? `<small>${SOUND[s].tag}</small>` : ''); }
 function soundText(s) { return '«' + esc(s) + '»' + (SOUND[s] ? ' ' + SOUND[s].tag : ''); }
 function pairLine(x) {
@@ -531,10 +568,10 @@ function soundGuide() {
   const rows = [['თ', 'ტ'], ['ქ', 'კ'], ['ფ', 'პ'], ['ც', 'წ'], ['ჩ', 'ჭ']];
   return `<div>В грузинском пять пар похожих согласных. <b>Без апострофа</b> (к, т, п, ц, ч) — звук <b>с выдохом</b>: как русский, но после него лёгкий выдох. <b>С апострофом</b> (к', т', п', ц', ч') — <b>сжатый</b>: задержи дыхание и скажи звук коротким щелчком, воздуха нет.</div>
   <div>Проверка: поднеси ладонь ко рту — на звуке с выдохом почувствуешь воздух, на сжатом нет.</div>
-  <table class="stable"><tr><th>С выдохом</th><th>Сжатый</th><th>Пример</th></tr>${rows.map(r => `<tr><td><span class="gl">${r[0]}</span>${esc(BY[r[0]].s)}</td><td><span class="gl">${r[1]}</span>${esc(BY[r[1]].s)}</td><td>${BY[r[0]].w} / ${BY[r[1]].w}</td></tr>`).join('')}</table>
-  <div>Живое произношение: на обороте каждой карточки есть ссылки «Послушать» — записи людей на сайте Forvo. Для некоторых слов записи может не быть.</div>
+  <table class="stable"><tr><th>С выдохом</th><th>Сжатый</th><th>Пример</th></tr>${rows.map(r => `<tr><td><span class="gl">${r[0]}</span>${esc(BY[r[0]].s)}${playBtn(syl(BY[r[0]]), '', 'mini')}</td><td><span class="gl">${r[1]}</span>${esc(BY[r[1]].s)}${playBtn(syl(BY[r[1]]), '', 'mini')}</td><td>${BY[r[0]].w} / ${BY[r[1]].w}</td></tr>`).join('')}</table>
+  <div>Нажми кнопку со стрелкой, чтобы послушать: в таблице звучат слоги ქა / კა и т. д. — так разницу слышно лучше всего. Голос синтезирован по записям грузинской дикторши, работает без интернета.</div>
   <div>Ещё четыре особых звука:</div>
-  <table class="stable">${['ყ', 'ღ', 'ხ', 'ჰ'].map(g => `<tr><td style="white-space:nowrap"><span class="gl">${g}</span>${esc(BY[g].s)}</td><td>${SOUND[BY[g].s].how}</td></tr>`).join('')}</table>`;
+  <table class="stable">${['ყ', 'ღ', 'ხ', 'ჰ'].map(g => `<tr><td style="white-space:nowrap"><span class="gl">${g}</span>${esc(BY[g].s)}${playBtn(syl(BY[g]), '', 'mini')}</td><td>${SOUND[BY[g].s].how}</td></tr>`).join('')}</table>`;
 }
 function starsHTML(s) { return `<span class="stars" aria-label="${s} из 3 звёзд">${'★'.repeat(s)}<span class="off">${'★'.repeat(3 - s)}</span></span>`; }
 
@@ -811,10 +848,11 @@ function flash() {
         </div>
         <div class="face back">
           <div class="back-head"><div class="g">${x.g}</div><div><div class="sound">${esc(x.s)}</div>${note}</div></div>
+          <div class="plays">${playBtn(syl(x), 'Звук <span class="gl">' + syl(x) + '</span>')}${playBtn(x.w, 'Слово <span class="gl">' + x.w + '</span>')}</div>
           ${how}
           <p class="assoc">${x.a}</p>
           ${pairLine(x)}
-          <div class="anchor"><span class="w">${x.w}</span><span class="t">${esc(x.wt)} — ${esc(x.wm)}</span><span class="listen">Послушать, как говорят люди: <a href="${forvo(x.g)}" target="_blank" rel="noopener">буква ${x.g}</a> · <a href="${forvo(x.w)}" target="_blank" rel="noopener">слово ${x.w}</a></span></div>
+          <div class="anchor"><span class="w">${x.w}</span><span class="t">${esc(x.wt)} — ${esc(x.wm)}</span></div>
         </div>
       </div>
     </div>
@@ -824,6 +862,7 @@ function flash() {
   const flip = () => {
     if (cardEl.classList.contains('flipped')) return;
     cardEl.classList.add('flipped');
+    autoSay(syl(x));
     $('actions').innerHTML = `<button class="btn bad" id="no">Не помню</button><button class="btn good" id="yes">Помню</button>`;
     $('no').onclick = () => { record(false, x.g); next(); };
     $('yes').onclick = () => { record(true, x.g); next(); };
@@ -863,14 +902,16 @@ function l2s() {
     if (answered) return;
     const ok = i === ri;
     const extra = ok ? '' : `<div class="feedback no" style="margin-top:8px"><div class="g">${opts[i].g}</div><p>${soundText(opts[i].s)} — это ${opts[i].g}: ${opts[i].a}</p></div>`;
-    grade(ok, btns, ri, i, feedbackHTML(ok, x) + extra, x.g);
+    grade(ok, btns, ri, i, feedbackHTML(ok, x) + `<div class="plays" style="margin-top:8px">${playBtn(syl(x), 'Звук <span class="gl">' + syl(x) + '</span>')}${playBtn(x.w, 'Слово <span class="gl">' + x.w + '</span>')}</div>` + extra, x.g);
+    autoSay(syl(x));
   });
 }
 function s2l() {
   const x = pickLetter(); if (!x) return emptyState(); last = x.g;
   const opts = letterOptions(x);
   const note = SOUND[x.s] ? `<div class="sub"><b>${SOUND[x.s].tag}</b></div><div class="sub">${SOUND[x.s].how}</div>` : '';
-  const btns = quizShell(`<div class="label">Найди букву</div><div class="big-sound">${esc(x.s)}</div>${note}`, opts.map(o => o.g), 'g');
+  const btns = quizShell(`<div class="label">Найди букву</div><div class="big-sound">${esc(x.s)}</div>${note}${playBtn(syl(x), 'Послушать', 'big')}`, opts.map(o => o.g), 'g');
+  autoSay(syl(x));
   const ri = opts.indexOf(x);
   btns.forEach((b, i) => b.onclick = () => {
     if (answered) return;
@@ -892,8 +933,9 @@ function words() {
   btns.forEach((b, i) => b.onclick = () => {
     if (answered) return;
     const ok = i === ri;
-    const fb = `<div class="feedback plain ${ok ? 'ok' : 'no'}"><p>${ok ? 'Верно!' : 'Правильно:'} <b>${esc(x.t)}</b> — «${esc(x.m)}».<br><span style="font-size:.88rem">${wordBreakdown(x)}</span></p></div>`;
+    const fb = `<div class="feedback plain ${ok ? 'ok' : 'no'}"><p>${ok ? 'Верно!' : 'Правильно:'} <b>${esc(x.t)}</b> — «${esc(x.m)}».<br><span style="font-size:.88rem">${wordBreakdown(x)}</span></p></div><div class="plays" style="margin-top:8px">${playBtn(x.w, 'Послушать слово')}</div>`;
     grade(ok, btns, ri, i, fb, null);
+    autoSay(x.w);
   });
 }
 
@@ -908,7 +950,8 @@ function trace() {
     </div>
     <label class="toggle"><input type="checkbox" id="guide" ${st.trace ? 'checked' : ''}>Показывать образец</label>
     <div class="row"><button class="btn ghost" id="clr">Стереть</button><button class="btn primary" id="nx">Следующая буква</button></div>
-    <div class="feedback ok"><div class="g">${x.g}</div><p>${x.a}</p></div>`;
+    <div class="feedback ok"><div class="g">${x.g}</div><p>${x.a}</p></div>
+    <div class="plays">${playBtn(syl(x), 'Звук <span class="gl">' + syl(x) + '</span>')}${playBtn(x.w, 'Слово <span class="gl">' + x.w + '</span>')}</div>`;
   const cv = $('cv'), ctx = cv.getContext('2d');
   let strokes = [], cur = null;
   const dpr = () => window.devicePixelRatio || 1;
@@ -1053,7 +1096,7 @@ function examQ() {
   } else {
     opts = letterOptions(q.x); ri = opts.indexOf(q.x);
     if (q.t === 'l2s') { labels = opts.map(o => soundLabel(o.s)); cls = ''; prompt = `<div class="label">Как читается?</div><div class="glyph">${q.x.g}</div>`; }
-    else { labels = opts.map(o => o.g); cls = 'g'; prompt = `<div class="label">Найди букву</div><div class="big-sound">${esc(q.x.s)}</div>${SOUND[q.x.s] ? `<div class="sub"><b>${SOUND[q.x.s].tag}</b></div>` : ''}`; }
+    else { labels = opts.map(o => o.g); cls = 'g'; prompt = `<div class="label">Найди букву</div><div class="big-sound">${esc(q.x.s)}</div>${SOUND[q.x.s] ? `<div class="sub"><b>${SOUND[q.x.s].tag}</b></div>` : ''}${playBtn(syl(q.x), 'Послушать', 'big')}`; }
   }
   $('exam').innerHTML = `
     <div class="topbar"><button class="back" id="exQuit">← Выйти</button><div class="tt">Экзамен · Уровень ${e.n}</div></div>
@@ -1159,6 +1202,15 @@ function setTheme(t) {
   theme = t; try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
   applyTheme(); renderThemeSet(); if (view === 'home') renderHome();
 }
+function renderVoiceSet() {
+  const g = $('voiceset'); g.innerHTML = '';
+  [[true, 'Сама при ответе'], [false, 'Только по кнопке']].forEach(o => {
+    const c = document.createElement('button'); c.className = 'chip'; c.textContent = o[1];
+    c.setAttribute('aria-pressed', st.autoplay === o[0] ? 'true' : 'false');
+    c.onclick = () => { st.autoplay = o[0]; save(); renderVoiceSet(); };
+    g.appendChild(c);
+  });
+}
 function renderThemeSet() {
   const g = $('themeset'); g.innerHTML = '';
   [['auto', 'Как в системе'], ['light', 'Светлая'], ['dark', 'Тёмная']].forEach(o => {
@@ -1222,13 +1274,15 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden && !b
 function start(d) {
   if (d && d.session) session = d.session;
   const g = soundGuide(); $('guideHome').innerHTML = g; $('guideTrain').innerHTML = g;
-  renderGoal(); renderThemeSet(); show('home'); renderHome();
+  $('ver').textContent = 'Анбани · версия ' + APP_VER + ' · сборка ' + BUILD;
+  $('whatsNew').innerHTML = CHANGES.map(c => `<div><b>Версия ${c[0]}</b><ul>${c[1].map(t => `<li>${t}</li>`).join('')}</ul></div>`).join('');
+  renderGoal(); renderThemeSet(); renderVoiceSet(); show('home'); renderHome();
 }
 if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(() => ({ session: session }));
 if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude.hot.ready(start); else start((window.claude && window.claude.hot && window.claude.hot.data) || {});
 
 /* PWA: self-update — checks for a new version whenever the app is opened or brought back */
-const APP_VERSION = '20261019222421';
+const APP_VERSION = '20261019224840';
 let pendingUpdate = false, updateToastShown = false;
 function applyUpdateIfIdle() {
   if (!pendingUpdate) return;
