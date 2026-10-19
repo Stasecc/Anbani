@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+Georgian:wght@500;700&family=Onest:wght@400;500;600;700&display=swap">
 <style>
-/* Layout: one narrow column like a deck of enamel plaques; progress summary on top, the letter is the hero, controls stack below. */
+/* Layout: one narrow column, two rooms — the Path (six levels on a vertical route, each with its letters and readiness) and the Training room where the letter is the hero. */
 :root {
   --bg: #f3f1f5;
   --surface: #ffffff;
@@ -29,10 +29,12 @@
   --on-accent: #ffffff;
   --good: #2e7a4d;
   --good-soft: #e1f2e7;
+  --on-good: #ffffff;
   --bad: #b02a2a;
   --bad-soft: #fbe5e3;
   --warn: #9a5b00;
   --warn-soft: #fbefd9;
+  --star: #c98a12;
   --box0: #e9e5ee; --box1: #ecd3dc; --box2: #dca9bb; --box3: #c27792; --box4: #9c3f62; --box5: #7a1f3d;
   --box-ink-dark: #1e1a23; --box-ink-light: #ffffff;
   --guide: #e6e0ec;
@@ -44,7 +46,8 @@
   :root:not([data-theme="light"]) {
     --bg: #15111a; --surface: #211b27; --sunken: #2a2331; --ink: #f2edf5; --muted: #a79eb2; --line: #3a3142;
     --accent: #e8829f; --accent-soft: #3c2030; --on-accent: #1a0d13;
-    --good: #72d199; --good-soft: #193526; --bad: #ff8f86; --bad-soft: #3d1c1c; --warn: #f1b45c; --warn-soft: #3a2a12;
+    --good: #72d199; --good-soft: #193526; --on-good: #0e2318; --bad: #ff8f86; --bad-soft: #3d1c1c; --warn: #f1b45c; --warn-soft: #3a2a12;
+    --star: #f1c25c;
     --box0: #2a2331; --box1: #43283a; --box2: #6a3150; --box3: #9a4569; --box4: #c66488; --box5: #e8829f;
     --box-ink-dark: #f2edf5; --box-ink-light: #1a0d13; --guide: #342c3c;
     color-scheme: dark;
@@ -53,95 +56,135 @@
 :root[data-theme="dark"] {
   --bg: #15111a; --surface: #211b27; --sunken: #2a2331; --ink: #f2edf5; --muted: #a79eb2; --line: #3a3142;
   --accent: #e8829f; --accent-soft: #3c2030; --on-accent: #1a0d13;
-  --good: #72d199; --good-soft: #193526; --bad: #ff8f86; --bad-soft: #3d1c1c; --warn: #f1b45c; --warn-soft: #3a2a12;
+  --good: #72d199; --good-soft: #193526; --on-good: #0e2318; --bad: #ff8f86; --bad-soft: #3d1c1c; --warn: #f1b45c; --warn-soft: #3a2a12;
+  --star: #f1c25c;
   --box0: #2a2331; --box1: #43283a; --box2: #6a3150; --box3: #9a4569; --box4: #c66488; --box5: #e8829f;
   --box-ink-dark: #f2edf5; --box-ink-light: #1a0d13; --guide: #342c3c;
   color-scheme: dark;
 }
-:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
-html { -webkit-text-size-adjust: 100%; }
-body { margin: 0; }
-[hidden] { display: none !important; }
-.install { background: var(--accent-soft); color: var(--ink); border-radius: 14px; padding: 10px 14px; font-size: 0.88rem; display: flex; gap: 10px; align-items: flex-start; justify-content: space-between; }
-.install b { color: var(--accent); }
-.install button { border: 0; background: none; color: var(--muted); font-size: 1.2rem; line-height: 1; padding: 0 2px; }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body {
   background: var(--bg); color: var(--ink); font-family: var(--f-ui); font-size: 16px; line-height: 1.45;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 16px 32px;
+  padding-top: 16px; padding-bottom: 32px;
   -webkit-tap-highlight-color: transparent;
 }
-.app { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+.app, .room, #homeDyn { display: grid; grid-template-columns: minmax(0, 1fr); grid-gap: 14px; gap: 14px; }
+.app { max-width: 520px; margin: 0 auto; }
 button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible, textarea:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
-header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-h1 { margin: 0; font-size: 1.35rem; font-weight: 700; letter-spacing: -0.01em; }
-h1 span { font-family: var(--f-glyph); color: var(--accent); font-weight: 700; margin-right: 6px; }
+header { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; }
+h1 { margin: 0 12px 0 0; font-size: 1.35rem; font-weight: 700; letter-spacing: -0.01em; }
+h1 span { font-family: var(--f-glyph); color: var(--accent); font-weight: 700; margin-right: 8px; }
 .daystreak { font-size: 0.9rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .daystreak b { color: var(--accent); }
 
-/* overall progress panel */
-.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 12px; }
-.headline { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-.big { font-size: 2.4rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
-.big small { font-size: 1rem; color: var(--muted); font-weight: 500; letter-spacing: 0; }
-.big-label { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
-.due-pill { border: 0; border-radius: 999px; padding: 7px 12px; font-size: 0.85rem; font-weight: 600; background: var(--warn-soft); color: var(--warn); }
-.due-pill.none { background: var(--good-soft); color: var(--good); cursor: default; }
-.bar { height: 8px; background: var(--sunken); border-radius: 99px; overflow: hidden; display: flex; }
-.bar i { display: block; height: 100%; }
-.bar .learned { background: var(--accent); }
-.bar .started { background: var(--box2); }
-.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-.kpi { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.kpi b { font-size: 1.1rem; font-variant-numeric: tabular-nums; }
-.kpi span { font-size: 0.72rem; color: var(--muted); line-height: 1.2; }
-.goal { display: flex; flex-direction: column; gap: 5px; font-size: 0.82rem; color: var(--muted); }
-.goal-row { display: flex; justify-content: space-between; gap: 8px; font-variant-numeric: tabular-nums; }
+.install { background: var(--accent-soft); border-radius: 14px; padding: 10px 14px; font-size: 0.88rem; display: grid; grid-template-columns: 1fr auto; grid-gap: 10px; gap: 10px; align-items: start; }
+.install b { color: var(--accent); }
+.install button { border: 0; background: none; color: var(--muted); font-size: 1.2rem; line-height: 1; padding: 0 2px; }
+
+/* hero */
+.hero { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; grid-gap: 14px; gap: 14px; }
+.hero-top { display: grid; grid-template-columns: 96px minmax(0, 1fr); grid-gap: 16px; gap: 16px; align-items: center; }
+.ring-wrap { position: relative; width: 96px; height: 96px; }
+.ring { width: 96px; height: 96px; display: block; }
+.ring circle { fill: none; stroke-width: 9; }
+.ring .bg { stroke: var(--sunken); }
+.ring .fg { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset .6s ease; }
+.ring-num { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; }
+.ring-num b { font-size: 1.75rem; font-variant-numeric: tabular-nums; }
+.ring-num span { font-size: 0.7rem; color: var(--muted); margin-top: 4px; }
+.eyebrow { font-size: 0.74rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+.hero-title { font-size: 1.2rem; font-weight: 700; line-height: 1.2; margin-top: 3px; }
+.hero-sub { font-size: 0.9rem; color: var(--muted); margin-top: 4px; }
+.hero-sub.ready { color: var(--good); font-weight: 600; }
+.stars-line { font-size: 0.85rem; color: var(--muted); margin-top: 6px; font-variant-numeric: tabular-nums; }
+.stars-line i, .stars { color: var(--star); font-style: normal; }
+.stars .off { color: var(--line); }
+.goal { display: grid; grid-gap: 6px; gap: 6px; font-size: 0.82rem; color: var(--muted); }
 .goal .bar i { background: var(--good); }
+.hero-btns { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); grid-gap: 8px; gap: 8px; }
 
-.map { display: grid; grid-template-columns: repeat(11, 1fr); gap: 4px; }
-.map button {
-  aspect-ratio: 1; min-height: 26px; max-width: 100%; border: 0; border-radius: 7px; padding: 0; position: relative;
-  font-family: var(--f-glyph); font-size: clamp(0.85rem, 3.6vw, 1.15rem); line-height: 1;
-  display: flex; align-items: center; justify-content: center; transition: transform .15s;
-}
-.map button.off { opacity: .3; }
-.map button.due::after { content: ""; position: absolute; top: 3px; right: 3px; width: 6px; height: 6px; border-radius: 50%; background: var(--warn); }
-.map button:active { transform: scale(.92); }
-.legend { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted); gap: 8px; flex-wrap: wrap; margin-top: 6px; }
-.legend .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--warn); margin-right: 4px; vertical-align: middle; }
+.row-sb { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.85rem; color: var(--muted); }
+.row-sb > :last-child { margin-left: 10px; text-align: right; }
+.row-sb b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.bar { height: 8px; background: var(--sunken); border-radius: 99px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); border-radius: 99px; transition: width .4s ease; }
 
-.chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
-.chips::-webkit-scrollbar { display: none; }
-.chip {
-  flex: none; border: 1px solid var(--line); background: var(--surface); border-radius: 999px;
-  padding: 7px 12px; font-size: 0.88rem; font-weight: 500; white-space: nowrap; font-variant-numeric: tabular-nums;
-}
-.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-.chip small { opacity: .7; margin-left: 5px; font-size: 0.78rem; }
+.btn { border: 0; border-radius: 14px; padding: 14px 12px; font-weight: 600; font-size: 1rem; }
+.btn.sm { padding: 10px 12px; font-size: 0.92rem; border-radius: 12px; }
+.btn.primary { background: var(--accent); color: var(--on-accent); }
+.btn.good { background: var(--good-soft); color: var(--good); }
+.btn.bad { background: var(--bad-soft); color: var(--bad); }
+.btn.warn { background: var(--warn-soft); color: var(--warn); }
+.btn.ghost { background: var(--surface); border: 1px solid var(--line); }
+.btn.full { grid-column: 1 / -1; }
+.link { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; font-size: inherit; font-weight: 600; }
 
-.tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--sunken); border-radius: 14px; padding: 4px; gap: 4px; }
+/* path */
+.path-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; margin: 4px 0 -6px; }
+.path { position: relative; }
+.path::before { content: ""; position: absolute; left: 19px; top: 28px; bottom: 28px; width: 2px; background: var(--line); }
+.lvl { position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr); grid-gap: 12px; gap: 12px; padding: 7px 0; }
+.node { width: 40px; height: 40px; margin-top: 6px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; background: var(--bg); border: 2px solid var(--line); color: var(--muted); position: relative; z-index: 1; }
+.node svg { width: 18px; height: 18px; }
+.lvl.current .node { background: var(--accent); border-color: var(--accent); color: var(--on-accent); box-shadow: 0 0 0 5px var(--accent-soft); }
+.lvl.passed .node { background: var(--good); border-color: var(--good); color: var(--on-good); }
+.lvl-body { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 12px; display: grid; grid-gap: 10px; gap: 10px; min-width: 0; }
+.lvl.current .lvl-body { border-color: var(--accent); box-shadow: 0 10px 28px -20px rgba(122, 31, 61, .6); }
+.lvl.locked .lvl-body { background: transparent; border-style: dashed; }
+.lvl-top { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; }
+.lvl-name { font-size: 0.95rem; margin-right: 8px; }
+.lvl.locked .lvl-name { color: var(--muted); }
+.stars { font-size: 0.95rem; letter-spacing: 1px; white-space: nowrap; }
+.tiles { display: flex; flex-wrap: wrap; margin: 0 -5px -5px 0; }
+.tile { width: 36px; height: 36px; margin: 0 5px 5px 0; border: 0; border-radius: 9px; padding: 0; font-family: var(--f-glyph); font-size: 1.2rem; line-height: 1; position: relative; display: flex; align-items: center; justify-content: center; }
+.tile.lock { opacity: .4; }
+.tile.due::after { content: ""; position: absolute; top: 3px; right: 3px; width: 6px; height: 6px; border-radius: 50%; background: var(--warn); }
+.ready { display: grid; grid-gap: 6px; gap: 6px; }
+.ready.is-ready .row-sb > :first-child { color: var(--good); font-weight: 600; }
+.ready.is-ready .bar i { background: var(--good); }
+.ready-hint { font-size: 0.82rem; color: var(--muted); }
+.gl { font-family: var(--f-glyph); color: var(--ink); letter-spacing: .12em; }
+.lvl-btns { display: grid; grid-template-columns: 1fr 1fr; grid-gap: 8px; gap: 8px; }
+.lvl-meta { font-size: 0.84rem; color: var(--muted); }
+.final-note { font-size: 0.88rem; color: var(--muted); }
+.legend { font-size: 0.75rem; color: var(--muted); }
+.legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; vertical-align: -1px; margin-right: 2px; }
+.legend .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--warn); vertical-align: 1px; margin: 0 3px 0 8px; }
+
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-gap: 6px; gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; }
+.kpi b { display: block; font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+.kpi span { display: block; font-size: 0.72rem; color: var(--muted); line-height: 1.2; }
+
+/* training room */
+.topbar { display: flex; align-items: center; }
+.back { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 7px 11px; font-size: 0.88rem; font-weight: 600; flex: none; margin-right: 10px; }
+.tt { font-weight: 700; font-size: 0.98rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.readybox { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; }
+.readybox.is-ready { border-color: var(--good); background: var(--good-soft); }
+.tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--sunken); border-radius: 14px; padding: 4px; grid-gap: 4px; gap: 4px; }
 .tab { border: 0; background: transparent; border-radius: 10px; padding: 9px 4px; font-size: 0.85rem; font-weight: 600; color: var(--muted); line-height: 1.2; }
 .tab[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
-
-.stage { display: flex; flex-direction: column; gap: 12px; }
+.stage { display: grid; grid-template-columns: minmax(0, 1fr); grid-gap: 12px; gap: 12px; }
 .empty { background: var(--surface); border: 1px dashed var(--line); border-radius: var(--r); padding: 22px 18px; text-align: center; color: var(--muted); }
+.note { font-size: 0.82rem; color: var(--muted); }
 
 /* flashcard */
-.card { perspective: 1200px; height: 340px; }
-.card-inner { position: relative; width: 100%; height: 100%; transition: transform .45s cubic-bezier(.3,.7,.2,1); transform-style: preserve-3d; -webkit-transform-style: preserve-3d; cursor: pointer; }
+.card { -webkit-perspective: 1200px; perspective: 1200px; height: 340px; }
+.card-inner { position: relative; width: 100%; height: 100%; transition: transform .45s cubic-bezier(.3,.7,.2,1); -webkit-transform-style: preserve-3d; transform-style: preserve-3d; cursor: pointer; }
 .card.flipped .card-inner { transform: rotateY(180deg); }
 .face {
-  position: absolute; top: 0; left: 0; right: 0; bottom: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0; -webkit-backface-visibility: hidden; backface-visibility: hidden;
   background: var(--surface); border-radius: var(--r); border: 1px solid var(--line);
   box-shadow: 0 10px 30px -18px rgba(60, 20, 40, .45);
   display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;
 }
-.face.back { transform: rotateY(180deg); justify-content: flex-start; gap: 10px; text-align: left; align-items: stretch; padding: 16px 18px; }
+.face.back { transform: rotateY(180deg); justify-content: flex-start; text-align: left; align-items: stretch; padding: 16px 18px; }
+.face.back > * + * { margin-top: 10px; }
 .glyph { font-family: var(--f-glyph); font-weight: 500; font-size: 9.5rem; line-height: 1; color: var(--ink); }
 .hint { position: absolute; bottom: 14px; left: 16px; right: 16px; font-size: 0.85rem; color: var(--muted); }
 .badge { position: absolute; top: 12px; left: 14px; right: 14px; display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -149,150 +192,162 @@ h1 span { font-family: var(--f-glyph); color: var(--accent); font-weight: 700; m
 .tag.new { background: var(--accent-soft); color: var(--accent); }
 .tag.due { background: var(--warn-soft); color: var(--warn); }
 .tag.ok { background: var(--good-soft); color: var(--good); }
-.back-head { display: flex; align-items: center; gap: 14px; }
+.back-head { display: grid; grid-template-columns: auto 1fr; grid-gap: 14px; gap: 14px; align-items: center; }
 .back-head .g { font-family: var(--f-glyph); font-size: 3.4rem; line-height: 1; color: var(--accent); }
 .sound { font-size: 2.2rem; font-weight: 700; line-height: 1; }
 .sound-note { font-size: 0.85rem; color: var(--muted); }
 .assoc { font-size: 1rem; margin: 0; }
 .assoc b { color: var(--accent); }
-.anchor { margin-top: auto; background: var(--sunken); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
-.anchor .w { font-family: var(--f-glyph); font-size: 1.35rem; }
-.anchor .t { font-size: 0.9rem; color: var(--muted); }
+.anchor { margin-top: auto !important; background: var(--sunken); border-radius: 12px; padding: 10px 12px; }
+.anchor .w { display: block; font-family: var(--f-glyph); font-size: 1.35rem; }
+.anchor .t { display: block; font-size: 0.9rem; color: var(--muted); }
 
-.row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.btn { border: 0; border-radius: 14px; padding: 15px 12px; font-weight: 600; font-size: 1rem; }
-.btn.primary { background: var(--accent); color: var(--on-accent); }
-.btn.good { background: var(--good-soft); color: var(--good); }
-.btn.bad { background: var(--bad-soft); color: var(--bad); }
-.btn.ghost { background: var(--surface); border: 1px solid var(--line); }
-.btn.full { grid-column: 1 / -1; }
+.row { display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px; gap: 10px; }
 
 /* quiz */
-.prompt { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 22px 18px; text-align: center; display: flex; flex-direction: column; gap: 6px; align-items: center; min-height: 200px; justify-content: center; }
+.prompt { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 22px 18px; text-align: center; display: flex; flex-direction: column; align-items: center; min-height: 200px; justify-content: center; }
+.prompt > * + * { margin-top: 6px; }
 .prompt .label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
 .prompt .glyph { font-size: 7.5rem; }
-.prompt .word { font-family: var(--f-glyph); font-size: 3rem; line-height: 1.2; overflow-wrap: anywhere; }
+.prompt .word { font-family: var(--f-glyph); font-size: 3rem; line-height: 1.2; word-break: break-word; }
 .prompt .big-sound { font-size: 4.2rem; font-weight: 700; line-height: 1.05; }
 .prompt .sub { color: var(--muted); font-size: 0.9rem; }
-.options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.options { display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px; gap: 10px; }
 .opt { border: 1px solid var(--line); background: var(--surface); border-radius: 14px; padding: 14px 8px; font-size: 1.35rem; font-weight: 600; min-height: 64px; transition: background .15s, border-color .15s; }
 .opt.g { font-family: var(--f-glyph); font-size: 2.6rem; font-weight: 500; padding: 8px; line-height: 1.1; }
 .opt.small { font-size: 1.1rem; }
 .opt.right { background: var(--good-soft); border-color: var(--good); color: var(--good); }
 .opt.wrong { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
 .opt:disabled { cursor: default; }
-.feedback { border-radius: 14px; padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start; font-size: 0.95rem; }
+.feedback { border-radius: 14px; padding: 12px 14px; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-gap: 12px; gap: 12px; align-items: start; font-size: 0.95rem; }
+.feedback.plain { grid-template-columns: minmax(0, 1fr); }
 .feedback.ok { background: var(--good-soft); }
 .feedback.no { background: var(--bad-soft); }
-.feedback .g { font-family: var(--f-glyph); font-size: 2.4rem; line-height: 1; color: var(--accent); flex: none; }
-.feedback p { margin: 0; min-width: 0; }
+.feedback .g { font-family: var(--f-glyph); font-size: 2.4rem; line-height: 1; color: var(--accent); }
+.feedback p { margin: 0; }
 .feedback b { color: var(--accent); }
 .stats { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .stats b { color: var(--ink); }
 
-/* blitz */
+/* blitz & results */
 .timer { height: 6px; background: var(--sunken); border-radius: 99px; overflow: hidden; }
 .timer i { display: block; height: 100%; background: var(--accent); transition: width .2s linear; }
 .blitz-top { display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; font-weight: 600; }
-.result { text-align: center; display: flex; flex-direction: column; gap: 6px; align-items: center; }
-.result .big { font-size: 3.4rem; }
+.big { font-size: 3.2rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
 .missed { font-family: var(--f-glyph); font-size: 1.6rem; letter-spacing: .15em; }
+.result.pass { border-color: var(--good); }
+.result.pass .label { color: var(--good); }
+.unlock { background: var(--accent-soft); border-radius: 12px; padding: 10px 14px; font-size: 0.95rem; margin-top: 12px !important; }
+.unlock b { color: var(--accent); }
+.exam-prog { display: grid; grid-gap: 6px; gap: 6px; }
 
 /* tracing */
 .trace-wrap { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
 .trace-wrap canvas { display: block; width: 100%; height: 300px; touch-action: none; }
 .trace-info { position: absolute; top: 10px; left: 14px; right: 14px; display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--muted); pointer-events: none; }
 .trace-info b { color: var(--ink); font-size: 1.1rem; }
-.toggle { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: var(--muted); }
+.toggle { font-size: 0.9rem; color: var(--muted); }
+.toggle input { margin-right: 8px; }
 
 /* footer */
-footer { display: flex; flex-direction: column; gap: 10px; font-size: 0.82rem; color: var(--muted); }
+footer { display: grid; grid-gap: 10px; gap: 10px; font-size: 0.82rem; color: var(--muted); }
 details { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; }
 summary { cursor: pointer; font-weight: 600; color: var(--ink); font-size: 0.9rem; }
 details[open] summary { margin-bottom: 8px; }
-.inner { display: flex; flex-direction: column; gap: 8px; }
-textarea { width: 100%; min-height: 70px; font: 0.78rem/1.35 ui-monospace, Menlo, monospace; border: 1px solid var(--line); border-radius: 10px; padding: 8px; background: var(--sunken); color: var(--ink); resize: vertical; overflow-wrap: anywhere; }
+.inner { display: grid; grid-gap: 8px; gap: 8px; }
+.inner ul { margin: 0; padding-left: 18px; }
+.inner li + li { margin-top: 4px; }
+textarea { width: 100%; min-height: 70px; font: 0.78rem/1.35 ui-monospace, Menlo, monospace; border: 1px solid var(--line); border-radius: 10px; padding: 8px; background: var(--sunken); color: var(--ink); resize: vertical; word-break: break-all; }
 .msg { font-size: 0.82rem; }
 .msg.ok { color: var(--good); } .msg.no { color: var(--bad); }
-.btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.btns { display: flex; flex-wrap: wrap; margin: 0 -8px -8px 0; }
+.btns > * { margin: 0 8px 8px 0; }
 .sbtn { border: 1px solid var(--line); background: var(--sunken); border-radius: 10px; padding: 8px 12px; font-size: 0.85rem; font-weight: 600; }
 .sbtn.danger { color: var(--bad); }
-.goalset { display: flex; gap: 6px; flex-wrap: wrap; }
-.goalset .chip { padding: 5px 11px; font-size: 0.82rem; }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 5px 12px; font-size: 0.85rem; font-weight: 500; font-variant-numeric: tabular-nums; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+/* toast & celebration */
+.toast { position: fixed; z-index: 40; left: 0; right: 0; margin: 0 auto; width: calc(100% - 32px); max-width: 488px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); border-radius: 14px; padding: 12px 14px; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-gap: 12px; gap: 12px; align-items: center; font-size: 0.92rem; box-shadow: 0 12px 30px -10px rgba(0,0,0,.4); }
+.toast.solo { grid-template-columns: minmax(0, 1fr); }
+.toast button { border: 0; border-radius: 10px; padding: 8px 12px; font-weight: 700; background: var(--accent); color: var(--on-accent); }
+.burst { position: fixed; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; overflow: hidden; z-index: 50; }
+.burst span { position: absolute; top: -50px; font-family: var(--f-glyph); color: var(--accent); opacity: .95; animation: fall 2.3s cubic-bezier(.2,.6,.4,1) forwards; }
+.burst span:nth-child(3n) { color: var(--star); }
+.burst span:nth-child(3n+1) { color: var(--good); }
+@keyframes fall { to { transform: translate(var(--dx, 0px), 110vh) rotate(200deg); opacity: 0; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .card-inner, .map button, .opt, .timer i { transition: none; }
+  .card-inner, .opt, .timer i, .bar i, .ring .fg { transition: none; }
 }
 @media (max-width: 380px) {
   .glyph { font-size: 8rem; }
   .card { height: 320px; }
   .tab { font-size: 0.78rem; }
-  .big { font-size: 2rem; }
   .prompt .word { font-size: 2.4rem; }
+  .hero-top { grid-template-columns: 84px minmax(0, 1fr); }
+  .ring-wrap, .ring { width: 84px; height: 84px; }
+  .tile { width: 32px; height: 32px; font-size: 1.05rem; }
 }
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; }
 </style>
 </head>
 <body>
 <div class="app">
   <div class="install" id="install" hidden><span>Установи как приложение: нажми <b>Поделиться</b> внизу Safari → <b>На экран «Домой»</b>. Будет работать и без интернета.</span><button id="installX" aria-label="Скрыть подсказку">×</button></div>
-  <header>
-    <h1><span>ანბანი</span>Карточки</h1>
-    <div class="daystreak" id="daystreak"></div>
-  </header>
 
-  <section class="panel" aria-label="Общий прогресс">
-    <div class="headline">
-      <div>
-        <div class="big" id="learned">0<small> / 33</small></div>
-        <div class="big-label">букв выучено</div>
-      </div>
-      <button class="due-pill" id="duePill"></button>
-    </div>
-    <div class="bar" id="bar" aria-hidden="true"></div>
-    <div class="kpis" id="kpis"></div>
-    <div class="goal" id="goal"></div>
-    <div>
-      <div class="map" id="map"></div>
-      <div class="legend"><span>Светлая — новая, тёмная — выучена</span><span><i class="dot"></i>пора повторить</span></div>
-    </div>
+  <section class="room" id="home">
+    <div id="homeDyn"></div>
+    <footer>
+      <details>
+        <summary>Как работает путь</summary>
+        <div class="inner">
+          <ul>
+            <li><b>6 уровней.</b> Уровни 1–5 совпадают с днями методички, 6-й — финальный экзамен по всему алфавиту. Следующий уровень открывается, когда сдан экзамен предыдущего.</li>
+            <li><b>Готовность.</b> Буква закреплена, когда ты вспомнил её второй раз после паузы. Когда закреплены все буквы уровня, приложение скажет, что ты готов к экзамену. Для финала буквы должны вспоминаться на следующий день.</li>
+            <li><b>Экзамен.</b> Каждая буква уровня, чтение слов и пара букв из прошлых уровней. Можно ошибиться 1 раз, в финале — 2.</li>
+            <li><b>Звёзды.</b> ★ — экзамен сдан, ★★ — все буквы уровня вспоминаются на следующий день, ★★★ — держатся неделю.</li>
+            <li><b>Повторения.</b> Каждая буква повторяется через 2 минуты, 30 минут, 1 день, 3 дня и 7 дней. Ошибка откатывает букву на 2 ступени назад. Буквы из прошлых уровней, которым пора на повторение, подмешиваются в тренировку.</li>
+          </ul>
+          <div class="legend"><span class="sw" style="background:var(--box0)"></span>новая → <span class="sw" style="background:var(--box2)"></span>закреплена → <span class="sw" style="background:var(--box5)"></span>держится неделю<span class="dot"></span>пора повторить</div>
+        </div>
+      </details>
+      <details>
+        <summary>Настройки и резервная копия</summary>
+        <div class="inner">
+          <div>Цель на день, ответов:</div>
+          <div class="btns" id="goalset"></div>
+          <div>Код прогресса — сохрани его в заметках, чтобы перенести прогресс на другое устройство или восстановить после очистки браузера.</div>
+          <div class="btns"><button class="sbtn" id="exportBtn">Показать и скопировать код</button></div>
+          <textarea id="io" placeholder="Сюда появится код или вставь сохранённый код" aria-label="Код прогресса"></textarea>
+          <div class="btns"><button class="sbtn" id="importBtn">Восстановить из кода</button><button class="sbtn danger" id="resetBtn">Сбросить прогресс</button></div>
+          <div class="msg" id="ioMsg" role="status"></div>
+        </div>
+      </details>
+    </footer>
   </section>
 
-  <div class="chips" id="chips" role="group" aria-label="Какие буквы учить"></div>
+  <section class="room" id="train" hidden>
+    <div class="topbar"><button class="back" id="backBtn">← Путь</button><div class="tt" id="trainTitle"></div></div>
+    <div id="readyBar"></div>
+    <div class="tabs" role="tablist" id="tabs">
+      <button class="tab" role="tab" data-mode="flash">Карточки</button>
+      <button class="tab" role="tab" data-mode="l2s">Буква → звук</button>
+      <button class="tab" role="tab" data-mode="s2l">Звук → буква</button>
+      <button class="tab" role="tab" data-mode="words">Слова</button>
+      <button class="tab" role="tab" data-mode="trace">Прописи</button>
+      <button class="tab" role="tab" data-mode="blitz">Блиц 60 сек</button>
+    </div>
+    <main class="stage" id="stage" aria-live="polite"></main>
+    <div class="note">Апостроф (к', п', т', ц', ч') — сжатый звук без выдоха. «гх» — это ღ, «къ» — это ყ, h — лёгкий выдох ჰ.</div>
+  </section>
 
-  <div class="tabs" role="tablist" id="tabs">
-    <button class="tab" role="tab" data-mode="flash">Карточки</button>
-    <button class="tab" role="tab" data-mode="l2s">Буква → звук</button>
-    <button class="tab" role="tab" data-mode="s2l">Звук → буква</button>
-    <button class="tab" role="tab" data-mode="words">Слова</button>
-    <button class="tab" role="tab" data-mode="trace">Прописи</button>
-    <button class="tab" role="tab" data-mode="blitz">Блиц 60 сек</button>
-  </div>
-
-  <main class="stage" id="stage" aria-live="polite"></main>
-
-  <footer>
-    <div>Апостроф (к', п', т', ц', ч') — сжатый звук без выдоха. «гх» — это ღ, «къ» — это ყ, h — лёгкий выдох ჰ.</div>
-    <details>
-      <summary>Как работает запоминание</summary>
-      <div class="inner">
-        <div>Каждая буква проходит 5 уровней. Правильный ответ поднимает уровень, но только когда букве пора на повторение: через 2 минуты, 30 минут, 1 день, 3 дня и 7 дней. Ошибка опускает на 2 уровня. Буква считается выученной с 3-го уровня — то есть ты вспомнил её хотя бы на следующий день.</div>
-        <div>Пока повторять нечего, тренируйся сколько хочешь: ответы идут в статистику, а уровни не растут. Прогресс хранится в этом браузере на твоём телефоне.</div>
-      </div>
-    </details>
-    <details>
-      <summary>Настройки и резервная копия</summary>
-      <div class="inner">
-        <div>Цель на день, ответов:</div>
-        <div class="goalset" id="goalset"></div>
-        <div>Код прогресса — сохрани его в заметках, чтобы перенести прогресс на другое устройство или восстановить после очистки браузера.</div>
-        <div class="btns"><button class="sbtn" id="exportBtn">Показать и скопировать код</button></div>
-        <textarea id="io" placeholder="Сюда появится код или вставь сохранённый код" aria-label="Код прогресса"></textarea>
-        <div class="btns"><button class="sbtn" id="importBtn">Восстановить из кода</button><button class="sbtn danger" id="resetBtn">Сбросить прогресс</button></div>
-        <div class="msg" id="ioMsg" role="status"></div>
-      </div>
-    </details>
-  </footer>
+  <section class="room" id="exam" hidden></section>
 </div>
+<div class="toast" id="toast" role="status" hidden></div>
+<div class="burst" id="burst" aria-hidden="true" hidden></div>
 
 <script>
 const L = [
@@ -344,40 +399,111 @@ const NOTE = {"т":"с выдохом","т'":"сжатый, без выдоха"
 const GROUPS = ['ვკპჰ','ბნწ','მშძქ','ოთლღრ','ეუჟ','თტ','ქკ','ფპ','ცწ','ჩჭ','კყ','ხჰ','ლღ'];
 function kin(g) { const s = new Set(); GROUPS.forEach(gr => { if (gr.indexOf(g) >= 0) Array.from(gr).forEach(c => { if (c !== g) s.add(c); }); }); return Array.from(s); }
 
+const LEVELS = [
+  { n: 1, name: 'Гласные и первые согласные' },
+  { n: 2, name: 'Простые согласные' },
+  { n: 3, name: 'Звуки с выдохом' },
+  { n: 4, name: 'Сжатые звуки' },
+  { n: 5, name: 'Последние буквы' },
+  { n: 6, name: 'Финал: весь алфавит' }
+];
+const LAST = LEVELS.length;
+function levelLetters(n) { return n === LAST ? L : L.filter(x => x.d === n); }
+
 /* ---------- state & storage ---------- */
 const KEY = 'mkhedruli-cards-v2', OLDKEY = 'mkhedruli-cards-v1';
 const MIN = 60e3, HOUR = 60 * MIN, DAY = 24 * HOUR;
-const IV = [0, 2 * MIN, 30 * MIN, DAY, 3 * DAY, 7 * DAY];   // wait after reaching box n
+const IV = [0, 2 * MIN, 30 * MIN, DAY, 3 * DAY, 7 * DAY];   // wait after reaching step n
 const LEARNED = 3;
-function fresh() { return { v: 2, cards: {}, scope: 1, mode: 'flash', goal: 40, days: {}, total: 0, correct: 0, best: 0, blitzBest: 0, trace: true }; }
+function fresh() { return { v: 3, cards: {}, scope: 1, mode: 'flash', goal: 40, days: {}, total: 0, correct: 0, best: 0, blitzBest: 0, trace: true, passed: {}, exams: {}, readyShown: {} }; }
 let st = fresh();
 function load() {
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) { st = Object.assign(fresh(), JSON.parse(raw)); return; }
     const old = localStorage.getItem(OLDKEY);
-    if (old) {   // migrate v1 boxes
+    if (old) {
       const o = JSON.parse(old);
-      Object.keys(o.boxes || {}).forEach(g => { const b = Math.min(2, o.boxes[g] | 0); st.cards[g] = { b, due: 0, seen: b, ok: b }; });
-      if (typeof o.scope === 'number') st.scope = o.scope;
+      Object.keys(o.boxes || {}).forEach(g => { const b = Math.min(2, o.boxes[g] | 0); st.cards[g] = { b: b, due: 0, seen: b, ok: b }; });
       save();
     }
   } catch (e) {}
 }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
 load();
-if (st.mode === 'blitz') st.mode = 'flash';
+['cards', 'days', 'passed', 'exams', 'readyShown'].forEach(k => { if (!st[k] || typeof st[k] !== 'object') st[k] = {}; });
 
 const card = g => st.cards[g] || { b: 0, due: 0, seen: 0, ok: 0 };
 const box = g => card(g).b;
 const isNew = g => card(g).seen === 0;
 const isDue = g => { const c = card(g); return c.seen > 0 && c.due <= Date.now(); };
-function today() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
-function dayKey(offset) { const d = new Date(); d.setDate(d.getDate() - offset); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function ymd(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function today() { return ymd(new Date()); }
+function dayKey(offset) { const d = new Date(); d.setDate(d.getDate() - offset); return ymd(d); }
 
+/* ---------- levels ---------- */
+function unlocked(n) { return n <= 1 || !!st.passed[n - 1]; }
+function currentLevel() { for (let n = 1; n <= LAST; n++) if (!st.passed[n]) return n; return LAST; }
+function allDone() { return !!st.passed[LAST]; }
+function maxUnlocked() { let m = 1; for (let n = 2; n <= LAST; n++) if (unlocked(n)) m = n; return m; }
+function knownLetters() { const m = maxUnlocked(); return m === LAST ? L : L.filter(x => x.d <= m); }
+function readyStep(n) { return n === LAST ? 3 : 2; }
+function readiness(n) {
+  const ls = levelLetters(n), rs = readyStep(n);
+  const done = ls.filter(x => box(x.g) >= rs).length;
+  return { done: done, total: ls.length, ready: done === ls.length };
+}
+function stars(n) {
+  if (!st.passed[n]) return 0;
+  const ls = levelLetters(n); let s = 1;
+  if (ls.every(x => box(x.g) >= 3)) s++;
+  if (ls.every(x => box(x.g) >= 5)) s++;
+  return s;
+}
+(function normalize() {
+  const s = st.scope;
+  const ok = s === 'due' || s === 'hard' || (typeof s === 'number' && s >= 1 && s <= LAST && unlocked(s));
+  if (!ok) st.scope = currentLevel();
+  if (['flash', 'l2s', 's2l', 'words', 'trace'].indexOf(st.mode) < 0) st.mode = 'flash';
+})();
+
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function plural(n, a, b, c) { const m = n % 10, h = n % 100; return (m === 1 && h !== 11) ? a : (m >= 2 && m <= 4 && (h < 12 || h > 14)) ? b : c; }
+function waitText(ms) {
+  if (ms <= 0) return 'пора повторить';
+  if (ms < HOUR) return 'повтор через ' + Math.max(1, Math.round(ms / MIN)) + ' мин';
+  if (ms < DAY) return 'повтор через ' + Math.round(ms / HOUR) + ' ч';
+  const d = Math.round(ms / DAY); return 'повтор через ' + d + ' ' + plural(d, 'день', 'дня', 'дней');
+}
+function hard() { return knownLetters().filter(x => { const c = card(x.g); return c.seen > 0 && (c.b <= 1 || c.ok / c.seen < 0.7); }); }
+function dayStreak() { let n = 0, i = st.days[today()] ? 0 : 1; while (st.days[dayKey(i)]) { n++; i++; } return n; }
+const LOCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+function starsHTML(s) { return `<span class="stars" aria-label="${s} из 3 звёзд">${'★'.repeat(s)}<span class="off">${'★'.repeat(3 - s)}</span></span>`; }
+
+/* ---------- views ---------- */
+let view = 'home';
 let session = { right: 0, total: 0, streak: 0 };
+let last = null, forced = null, qid = 0, answered = false;
+let blitz = null, exam = null;
 
-/* one answer: stats + spaced repetition for a letter (g may be null for words) */
+function show(v) {
+  view = v;
+  $('home').hidden = v !== 'home'; $('train').hidden = v !== 'train'; $('exam').hidden = v !== 'exam';
+  try { window.scrollTo(0, 0); } catch (e) {}
+}
+function refresh() { if (view === 'home') renderHome(); else if (view === 'train') renderTrainHeader(); }
+function goHome() { stopBlitz(); exam = null; show('home'); renderHome(); }
+function openTrain(scope, mode, letter) {
+  stopBlitz(); st.scope = scope; if (mode) st.mode = mode; save();
+  forced = letter || null; last = null;
+  show('train'); renderTrainHeader(); next();
+}
+
+/* ---------- answers ---------- */
 function record(ok, g) {
   st.total++; if (ok) st.correct++;
   st.days[today()] = (st.days[today()] || 0) + 1;
@@ -391,28 +517,184 @@ function record(ok, g) {
     else { c.b = Math.max(0, c.b - 2); c.due = now + MIN; }
     st.cards[g] = c;
   }
-  save(); renderTop();
+  save();
+  checkReady();
+  refresh();
+}
+function checkReady() {
+  const n = currentLevel();
+  if (view === 'exam' || st.passed[n] || st.readyShown[n]) return;
+  if (readiness(n).ready) {
+    st.readyShown[n] = true; save();
+    toast(`Уровень ${n}: все буквы закреплены. Ты готов к экзамену!`, 'Сдать', () => startExam(n));
+  }
 }
 
-/* ---------- helpers ---------- */
-const $ = id => document.getElementById(id);
-const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; };
-const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function hard() { return L.filter(x => { const c = card(x.g); return c.seen > 0 && (c.b <= 1 || c.ok / c.seen < 0.7); }); }
-function scopeLetters() {
-  if (st.scope === 0) return L;
-  if (st.scope === 'due') return L.filter(x => isDue(x.g));
-  if (st.scope === 'hard') return hard();
-  return L.filter(x => x.d === st.scope);
+/* ---------- toast & celebration ---------- */
+let toastT = null;
+function toast(text, btn, onBtn) {
+  const t = $('toast');
+  t.className = 'toast' + (btn ? '' : ' solo');
+  t.innerHTML = `<span>${text}</span>` + (btn ? `<button id="toastBtn">${btn}</button>` : '');
+  t.hidden = false;
+  if (btn) $('toastBtn').onclick = () => { t.hidden = true; onBtn(); };
+  clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, btn ? 7000 : 4000);
 }
-function scopeWords() {
-  if (typeof st.scope === 'number' && st.scope > 0) return WORDS.filter(x => x.d <= st.scope);
-  return WORDS;
+function celebrate() {
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const b = $('burst'); b.innerHTML = '';
+  const chars = Array.from('აბგდევზთიკლმნოპჟრსტუფქღყშჩცძწჭხჯჰ');
+  for (let i = 0; i < 30; i++) {
+    const s = document.createElement('span');
+    s.textContent = chars[Math.floor(Math.random() * chars.length)];
+    s.style.left = (Math.random() * 96) + '%';
+    s.style.animationDelay = (Math.random() * 0.7) + 's';
+    s.style.fontSize = (18 + Math.random() * 28) + 'px';
+    s.style.setProperty('--dx', (Math.random() * 90 - 45) + 'px');
+    b.appendChild(s);
+  }
+  b.hidden = false;
+  setTimeout(() => { b.hidden = true; b.innerHTML = ''; }, 3200);
 }
-let last = null, forced = null, qid = 0;
+
+/* ---------- home: the path ---------- */
+function tile(x, un) {
+  const b = un ? box(x.g) : 0;
+  return `<button class="tile${un && isDue(x.g) ? ' due' : ''}${un ? '' : ' lock'}" data-letter="${x.g}" style="background:var(--box${b});color:${b >= 3 ? 'var(--box-ink-light)' : 'var(--box-ink-dark)'}" aria-label="${x.g}, звук ${esc(x.s)}${un ? ', ступень ' + b + ' из 5' : ', закрыта'}">${x.g}</button>`;
+}
+function readyBlock(n) {
+  const r = readiness(n);
+  return `<div class="ready${r.ready ? ' is-ready' : ''}"><div class="row-sb"><span>${r.ready ? 'Готов к экзамену' : 'Готовность к экзамену'}</span><b>${r.done}/${r.total}</b></div><div class="bar"><i style="width:${r.done / r.total * 100}%"></i></div></div>`;
+}
+function levelRow(l) {
+  const n = l.n, un = unlocked(n), passed = !!st.passed[n], cur = un && !passed;
+  const cls = passed ? 'passed' : cur ? 'current' : 'locked';
+  const node = passed ? CHECK_SVG : un ? String(n) : LOCK_SVG;
+  let body;
+  if (n === LAST) {
+    const learned = L.filter(x => box(x.g) >= LEARNED).length;
+    body = `<div class="final-note">Все 33 буквы вперемешку и чтение слов.${un ? ` Выучено ${learned} из 33.` : ''}</div>`;
+  } else body = `<div class="tiles">${levelLetters(n).map(x => tile(x, un)).join('')}</div>`;
+  let extra;
+  if (cur) {
+    const r = readiness(n);
+    extra = readyBlock(n) + `<div class="lvl-btns"><button class="btn sm ${r.ready ? 'ghost' : 'primary'}" data-train="${n}">Тренировать</button><button class="btn sm ${r.ready ? 'primary' : 'ghost'}" data-exam="${n}">Экзамен</button></div>`;
+  } else if (passed) {
+    const e = st.exams[n];
+    extra = `<div class="lvl-meta">Экзамен сдан${e && e.best ? ` на ${e.best}%` : ''} · <button class="link" data-train="${n}">тренировать</button> · <button class="link" data-exam="${n}">пересдать</button></div>`;
+  } else extra = `<div class="lvl-meta">Откроется после экзамена уровня ${n - 1}</div>`;
+  return `<div class="lvl ${cls}"><div class="node">${node}</div><div class="lvl-body"><div class="lvl-top"><span class="lvl-name"><b>Уровень ${n}</b> · ${esc(l.name)}</span>${passed ? starsHTML(stars(n)) : ''}</div>${body}${extra}</div></div>`;
+}
+function renderHome() {
+  const learned = L.filter(x => box(x.g) >= LEARNED).length;
+  const due = knownLetters().filter(x => isDue(x.g)).length;
+  const cur = currentLevel(), done = allDone(), r = readiness(cur);
+  const totalStars = LEVELS.reduce((a, l) => a + stars(l.n), 0);
+  const t = st.days[today()] || 0, ds = dayStreak();
+  const C = 2 * Math.PI * 44, off = C * (1 - learned / 33);
+  let sub, subCls = '';
+  if (done) sub = 'Весь алфавит пройден. Поддерживай буквы повторением.';
+  else if (r.ready) { sub = 'Все буквы закреплены — пора на экзамен'; subCls = ' ready'; }
+  else sub = `Закреплено ${r.done} из ${r.total} ${plural(r.total, 'буквы', 'букв', 'букв')} уровня`;
+  let btns = '';
+  if (due) btns += `<button class="btn warn" id="hDue">Повторить ${due} ${plural(due, 'букву', 'буквы', 'букв')}</button>`;
+  if (done) btns += `<button class="btn primary" id="hGo">Тренировать весь алфавит</button>`;
+  else if (r.ready) btns += `<button class="btn primary" id="hExam">Сдать экзамен уровня ${cur}</button>`;
+  else btns += `<button class="btn primary" id="hGo">${st.total ? 'Продолжить' : 'Начать'} уровень ${cur}</button>`;
+  const acc = st.total ? Math.round(st.correct / st.total * 100) + '%' : '—';
+  $('homeDyn').innerHTML = `
+    <header><h1><span>ანბანი</span>Анбани</h1><div class="daystreak">${ds ? `<b>${ds}</b> ${plural(ds, 'день', 'дня', 'дней')} подряд` : 'Серия дней: начни сегодня'}</div></header>
+    <section class="hero" aria-label="Общий прогресс">
+      <div class="hero-top">
+        <div class="ring-wrap">
+          <svg class="ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="bg" cx="50" cy="50" r="44"/><circle class="fg" cx="50" cy="50" r="44" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 50 50)"/></svg>
+          <div class="ring-num"><b>${learned}</b><span>из 33 букв</span></div>
+        </div>
+        <div>
+          <div class="eyebrow">${done ? 'Путь пройден' : `Уровень ${cur} из ${LAST}`}</div>
+          <div class="hero-title">${esc(LEVELS[cur - 1].name)}</div>
+          <div class="hero-sub${subCls}">${sub}</div>
+          <div class="stars-line"><i>★</i> ${totalStars} из ${LAST * 3} звёзд</div>
+        </div>
+      </div>
+      <div class="goal"><div class="row-sb"><span>Сегодня: <b>${t}</b> из ${st.goal} ответов</span><span>${t >= st.goal ? 'цель выполнена' : 'осталось ' + (st.goal - t)}</span></div><div class="bar"><i style="width:${Math.min(100, t / st.goal * 100)}%"></i></div></div>
+      <div class="hero-btns">${btns}</div>
+    </section>
+    <div class="path-title">Путь</div>
+    <section class="path" aria-label="Уровни">${LEVELS.map(levelRow).join('')}</section>
+    <section class="kpis" aria-label="Статистика">
+      <div class="kpi"><b>${acc}</b><span>точность за всё время</span></div>
+      <div class="kpi"><b>${st.total}</b><span>${plural(st.total, 'ответ', 'ответа', 'ответов')} всего</span></div>
+      <div class="kpi"><b>${st.best}</b><span>лучшая серия подряд</span></div>
+      <div class="kpi"><b>${st.blitzBest}</b><span>рекорд блица</span></div>
+    </section>`;
+  if ($('hDue')) $('hDue').onclick = () => openTrain('due', st.mode === 'words' || st.mode === 'trace' ? 'flash' : null);
+  if ($('hGo')) $('hGo').onclick = () => openTrain(cur);
+  if ($('hExam')) $('hExam').onclick = () => startExam(cur);
+}
+$('homeDyn').addEventListener('click', e => {
+  const t = e.target.closest ? e.target.closest('[data-train],[data-exam],[data-letter]') : null;
+  if (!t) return;
+  if (t.dataset.train) return openTrain(+t.dataset.train);
+  if (t.dataset.exam) return startExam(+t.dataset.exam);
+  const x = BY[t.dataset.letter];
+  if (!unlocked(x.d)) return toast(`Буква ${x.g} из уровня ${x.d}. Откроется после экзамена уровня ${x.d - 1}.`);
+  openTrain(x.d, 'flash', x.g);
+});
+
+/* ---------- training room ---------- */
+function scopeTitle() {
+  if (st.scope === 'due') return 'Повторение';
+  if (st.scope === 'hard') return 'Трудные буквы';
+  return `Уровень ${st.scope} · ${LEVELS[st.scope - 1].name}`;
+}
+function readyHint(n) {
+  const rs = readyStep(n);
+  const left = levelLetters(n).filter(x => box(x.g) < rs);
+  if (!left.length) return '';
+  const now = Date.now();
+  const waiting = left.filter(x => !isNew(x.g) && card(x.g).due > now);
+  let s = n === LAST
+    ? `Ещё не закреплены на следующий день: ${left.length} ${plural(left.length, 'буква', 'буквы', 'букв')}.`
+    : `Осталось закрепить: <span class="gl">${left.map(x => x.g).join(' ')}</span>.`;
+  if (waiting.length === left.length) {
+    const soon = Math.min.apply(null, waiting.map(x => card(x.g).due)) - now;
+    s += ` Следующую можно закрепить ${waitText(soon).replace('повтор ', '')} — пока тренируйся свободно.`;
+  } else s += n === LAST ? ' Буква закрепляется, когда ты вспомнил её на следующий день.' : ' Буква закрепляется, когда ты вспомнил её второй раз после паузы.';
+  return s;
+}
+function renderTrainHeader() {
+  $('trainTitle').textContent = scopeTitle();
+  const rb = $('readyBar'), s = st.scope;
+  if (typeof s === 'number' && !st.passed[s]) {
+    const r = readiness(s);
+    rb.innerHTML = `<div class="readybox${r.ready ? ' is-ready' : ''}">${readyBlock(s)}${r.ready ? `<button class="btn primary sm" id="rbExam" style="width:100%;margin-top:8px">Сдать экзамен уровня ${s}</button>` : `<div class="ready-hint" style="margin-top:6px">${readyHint(s)}</div>`}</div>`;
+    if (r.ready) $('rbExam').onclick = () => startExam(s);
+  } else if (typeof s === 'number') {
+    const k = stars(s);
+    const tip = k === 1 ? 'Вторая звезда — когда все буквы уровня вспоминаются на следующий день.' : k === 2 ? 'Третья звезда — когда буквы держатся неделю.' : 'Уровень освоен полностью.';
+    rb.innerHTML = `<div class="readybox"><div class="row-sb"><span>Экзамен сдан</span>${starsHTML(k)}</div><div class="ready-hint" style="margin-top:4px">${tip}</div></div>`;
+  } else {
+    const n = poolFor(s).length;
+    rb.innerHTML = `<div class="readybox"><div class="row-sb"><span>${s === 'due' ? 'Осталось повторить' : 'Трудных букв'}</span><b>${n}</b></div></div>`;
+  }
+  document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t.dataset.mode === st.mode ? 'true' : 'false'));
+}
+$('backBtn').onclick = goHome;
+function setMode(m) { stopBlitz(); st.mode = m; save(); renderTrainHeader(); next(); }
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => setMode(t.dataset.mode));
+
+function poolFor(s) {
+  if (s === 'due') return knownLetters().filter(x => isDue(x.g));
+  if (s === 'hard') return hard();
+  const base = levelLetters(s);
+  if (s === LAST) return base;
+  return base.concat(L.filter(x => x.d < s && isDue(x.g)));
+}
+function wordPool() { const m = typeof st.scope === 'number' ? st.scope : maxUnlocked(); return WORDS.filter(w => w.d <= m); }
 function pickLetter() {
   if (forced) { const f = forced; forced = null; return BY[f]; }
-  const pool = scopeLetters();
+  const pool = poolFor(st.scope);
   if (!pool.length) return null;
   const items = pool.length > 1 ? pool.filter(x => x.g !== last) : pool;
   const w = items.map(x => isDue(x.g) ? 12 + (5 - box(x.g)) : isNew(x.g) ? 7 : 1 + (5 - box(x.g)) * 0.6);
@@ -421,90 +703,26 @@ function pickLetter() {
   return items[items.length - 1];
 }
 function letterOptions(target) {
-  const vals = new Set([target.s]); const out = [target];
-  const near = shuffle(kin(target.g).map(g => BY[g]));
+  const vals = new Set([target.s]), out = [target];
+  const known = knownLetters(), knownSet = new Set(known.map(x => x.g));
+  const near = shuffle(kin(target.g).map(g => BY[g]).filter(x => knownSet.has(x.g)));
   const same = shuffle(L.filter(x => x.d === target.d && x.g !== target.g));
+  const rest = shuffle(known.filter(x => x.g !== target.g));
   const all = shuffle(L.filter(x => x.g !== target.g));
-  near.slice(0, 2).concat(same, all).forEach(x => { if (out.length < 4 && !vals.has(x.s)) { vals.add(x.s); out.push(x); } });
+  near.slice(0, 2).concat(same, rest, all).forEach(x => { if (out.length < 4 && !vals.has(x.s)) { vals.add(x.s); out.push(x); } });
   return shuffle(out);
 }
-function waitText(ms) {
-  if (ms <= 0) return 'пора повторить';
-  if (ms < HOUR) return 'повтор через ' + Math.max(1, Math.round(ms / MIN)) + ' мин';
-  if (ms < DAY) return 'повтор через ' + Math.round(ms / HOUR) + ' ч';
-  const d = Math.round(ms / DAY); return 'повтор через ' + d + (d === 1 ? ' день' : d < 5 ? ' дня' : ' дней');
+function wordOptions(w, pool) {
+  const seen = new Set([w.t]), opts = [w];
+  shuffle(pool).concat(shuffle(WORDS)).forEach(x => { if (opts.length < 4 && !seen.has(x.t)) { seen.add(x.t); opts.push(x); } });
+  return shuffle(opts);
 }
-function plural(n, a, b, c) { const m = n % 10, h = n % 100; return (m === 1 && h !== 11) ? a : (m >= 2 && m <= 4 && (h < 12 || h > 14)) ? b : c; }
 
-/* ---------- top: progress panel, map, chips, tabs ---------- */
-function dayStreak() {
-  let n = 0, i = st.days[today()] ? 0 : 1;
-  while (st.days[dayKey(i)]) { n++; i++; }
-  return n;
-}
-function renderTop() {
-  const learned = L.filter(x => box(x.g) >= LEARNED).length;
-  const started = L.filter(x => !isNew(x.g) && box(x.g) < LEARNED).length;
-  const due = L.filter(x => isDue(x.g)).length;
-  $('learned').innerHTML = learned + '<small> / 33</small>';
-  $('bar').innerHTML = `<i class="learned" style="width:${learned / 33 * 100}%"></i><i class="started" style="width:${started / 33 * 100}%"></i>`;
-  const pill = $('duePill');
-  if (due) { pill.className = 'due-pill'; pill.textContent = 'Повторить: ' + due + ' ' + plural(due, 'буква', 'буквы', 'букв'); pill.disabled = false; }
-  else { pill.className = 'due-pill none'; pill.textContent = st.total ? 'Все повторения сделаны' : 'Начни с карточек'; pill.disabled = true; }
-  const acc = st.total ? Math.round(st.correct / st.total * 100) + '%' : '—';
-  const ds = dayStreak();
-  $('kpis').innerHTML =
-    `<div class="kpi"><b>${acc}</b><span>точность за всё время</span></div>` +
-    `<div class="kpi"><b>${st.total}</b><span>${plural(st.total, 'ответ', 'ответа', 'ответов')} всего</span></div>` +
-    `<div class="kpi"><b>${st.best}</b><span>лучшая серия подряд</span></div>` +
-    `<div class="kpi"><b>${st.blitzBest}</b><span>рекорд блица</span></div>`;
-  const t = st.days[today()] || 0;
-  $('goal').innerHTML = `<div class="goal-row"><span>Сегодня: ${t} из ${st.goal} ${plural(st.goal, 'ответа', 'ответов', 'ответов')}</span><span>${t >= st.goal ? 'цель выполнена' : 'осталось ' + (st.goal - t)}</span></div><div class="bar"><i style="width:${Math.min(100, t / st.goal * 100)}%"></i></div>`;
-  $('daystreak').innerHTML = ds ? `<b>${ds}</b> ${plural(ds, 'день', 'дня', 'дней')} подряд` : 'Серия дней: начни сегодня';
-
-  const map = $('map'); map.innerHTML = '';
-  const inScope = new Set(scopeLetters().map(x => x.g));
-  L.forEach(x => {
-    const b = box(x.g), btn = document.createElement('button');
-    btn.textContent = x.g; btn.style.background = 'var(--box' + b + ')';
-    btn.style.color = b >= 3 ? 'var(--box-ink-light)' : 'var(--box-ink-dark)';
-    if (!inScope.has(x.g)) btn.classList.add('off');
-    if (isDue(x.g)) btn.classList.add('due');
-    btn.setAttribute('aria-label', x.g + ', звук ' + x.s + ', уровень ' + b + ' из 5');
-    btn.onclick = () => { forced = x.g; setMode('flash'); };
-    map.appendChild(btn);
-  });
-
-  const chips = $('chips'); chips.innerHTML = '';
-  const opts = [[1,'День 1'],[2,'День 2'],[3,'День 3'],[4,'День 4'],[5,'День 5'],[0,'Все 33']];
-  if (due) opts.unshift(['due', 'Повторить']);
-  if (hard().length) opts.push(['hard', 'Трудные']);
-  if ((st.scope === 'due' && !due) || (st.scope === 'hard' && !hard().length)) st.scope = 0;
-  opts.forEach(([v, t]) => {
-    const c = document.createElement('button'); c.className = 'chip';
-    let count = '';
-    if (typeof v === 'number' && v > 0) { const ls = L.filter(x => x.d === v); count = ls.filter(x => box(x.g) >= LEARNED).length + '/' + ls.length; }
-    else if (v === 0) count = learned + '/33';
-    else if (v === 'due') count = String(due);
-    else if (v === 'hard') count = String(hard().length);
-    c.innerHTML = esc(t) + '<small>' + count + '</small>';
-    c.setAttribute('aria-pressed', st.scope === v ? 'true' : 'false');
-    c.onclick = () => { st.scope = v; save(); last = null; renderTop(); next(); };
-    chips.appendChild(c);
-  });
-  document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t.dataset.mode === st.mode ? 'true' : 'false'));
-}
-$('duePill').onclick = () => { stopBlitz(); st.scope = 'due'; save(); if (st.mode === 'words' || st.mode === 'trace' || st.mode === 'blitz') st.mode = 'flash'; renderTop(); next(); };
-function setMode(m) { stopBlitz(); st.mode = m; save(); renderTop(); next(); }
-document.querySelectorAll('.tab').forEach(t => t.onclick = () => setMode(t.dataset.mode));
-
-/* ---------- modes ---------- */
-let answered = false;
-function statsLine() {
-  return `<div class="stats"><span>Сейчас: <b>${session.right}</b> из ${session.total}</span><span>Серия: <b>${session.streak}</b></span></div>`;
-}
+function statsLine() { return `<div class="stats"><span>Сейчас: <b>${session.right}</b> из ${session.total}</span><span>Серия: <b>${session.streak}</b></span></div>`; }
 function emptyState() {
-  $('stage').innerHTML = `<div class="empty">В этой подборке пока нет букв. Выбери другой день или «Все 33».</div>`;
+  const msg = st.scope === 'due' ? 'Все повторения сделаны. Новые появятся по расписанию.' : st.scope === 'hard' ? 'Трудных букв не осталось.' : 'Здесь пока нет букв.';
+  $('stage').innerHTML = `<div class="empty">${msg}<div style="margin-top:12px"><button class="btn primary sm" id="emHome">К пути</button></div></div>`;
+  $('emHome').onclick = goHome;
 }
 function next() {
   answered = false; qid++;
@@ -516,7 +734,6 @@ function next() {
   if (m === 'blitz') return blitzIntro();
   return words();
 }
-
 function statusTag(g) {
   const c = card(g);
   if (c.seen === 0) return '<span class="tag new">новая</span>';
@@ -531,7 +748,7 @@ function flash() {
     <div class="card" id="card">
       <div class="card-inner" id="cardInner" role="button" tabindex="0" aria-label="Перевернуть карточку">
         <div class="face front">
-          <div class="badge">${statusTag(x.g)}<span>уровень ${box(x.g)}/5</span></div>
+          <div class="badge">${statusTag(x.g)}<span>ступень ${box(x.g)}/5</span></div>
           <div class="glyph">${x.g}</div>
           <div class="hint">Вспомни звук и образ, потом нажми на карточку</div>
         </div>
@@ -556,7 +773,6 @@ function flash() {
   $('cardInner').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flip(); } };
   $('flip').onclick = flip;
 }
-
 function feedbackHTML(ok, x) {
   const head = ok ? 'Верно.' : `Это <span style="font-family:var(--f-glyph)">${x.g}</span> — «${esc(x.s)}».`;
   return `<div class="feedback ${ok ? 'ok' : 'no'}"><div class="g">${x.g}</div><p>${head} ${x.a}</p></div>`;
@@ -564,23 +780,21 @@ function feedbackHTML(ok, x) {
 function quizShell(promptHTML, labels, cls) {
   $('stage').innerHTML = `
     <div class="prompt">${promptHTML}</div>
-    <div class="options" id="opts">${labels.map((l, i) => `<button class="opt ${cls}" data-i="${i}">${l}</button>`).join('')}</div>
+    <div class="options">${labels.map((l, i) => `<button class="opt ${cls}" data-i="${i}">${l}</button>`).join('')}</div>
     <div id="fb"></div>
     ${statsLine()}`;
-  return Array.from(document.querySelectorAll('.opt'));
+  return Array.from($('stage').querySelectorAll('.opt'));
 }
 function grade(ok, btns, ri, ci, fbHTML, g) {
   answered = true;
   btns.forEach((b, i) => { b.disabled = true; if (i === ri) b.classList.add('right'); else if (i === ci) b.classList.add('wrong'); });
   record(ok, g);
   $('fb').innerHTML = fbHTML + `<div class="row" style="margin-top:10px"><button class="btn primary full" id="nextBtn">Дальше</button></div>`;
-  const myQ = qid;
-  let timer = null;
-  if (ok) timer = setTimeout(() => { if (qid === myQ) next(); }, 1500);
+  const myQ = qid; let timer = null;
+  if (ok) timer = setTimeout(() => { if (qid === myQ && view === 'train') next(); }, 1500);
   $('nextBtn').onclick = () => { clearTimeout(timer); next(); };
-  const s = document.querySelector('.stats'); if (s) s.outerHTML = statsLine();
+  const s = $('stage').querySelector('.stats'); if (s) s.outerHTML = statsLine();
 }
-
 function l2s() {
   const x = pickLetter(); if (!x) return emptyState(); last = x.g;
   const opts = letterOptions(x);
@@ -606,49 +820,41 @@ function s2l() {
     grade(ok, btns, ri, i, feedbackHTML(ok, x) + extra, x.g);
   });
 }
-
+function wordBreakdown(w) { return Array.from(w.w).map(c => `<span style="font-family:var(--f-glyph)">${c}</span>=${esc(BY[c] ? BY[c].s : c)}`).join(' · '); }
 let lastWord = null;
 function words() {
-  const pool = scopeWords();
+  const pool = wordPool();
   const cand = pool.length > 1 ? pool.filter(w => w.w !== lastWord) : pool;
   const x = cand[Math.floor(Math.random() * cand.length)]; lastWord = x.w;
-  const seen = new Set([x.t]); const opts = [x];
-  shuffle(pool).concat(shuffle(WORDS)).forEach(w => { if (opts.length < 4 && !seen.has(w.t)) { seen.add(w.t); opts.push(w); } });
-  const sh = shuffle(opts);
-  const btns = quizShell(`<div class="label">Прочитай слово</div><div class="word">${x.w}</div><div class="sub">${Array.from(x.w).length} ${plural(Array.from(x.w).length, 'буква', 'буквы', 'букв')}</div>`, sh.map(o => esc(o.t)), 'small');
+  const sh = wordOptions(x, pool);
+  const len = Array.from(x.w).length;
+  const btns = quizShell(`<div class="label">Прочитай слово</div><div class="word">${x.w}</div><div class="sub">${len} ${plural(len, 'буква', 'буквы', 'букв')}</div>`, sh.map(o => esc(o.t)), 'small');
   const ri = sh.indexOf(x);
   btns.forEach((b, i) => b.onclick = () => {
     if (answered) return;
     const ok = i === ri;
-    const parts = Array.from(x.w).map(c => `<span style="font-family:var(--f-glyph)">${c}</span>=${esc(BY[c] ? BY[c].s : c)}`).join(' · ');
-    const fb = `<div class="feedback ${ok ? 'ok' : 'no'}"><p>${ok ? 'Верно!' : 'Правильно:'} <b>${esc(x.t)}</b> — «${esc(x.m)}».<br><span style="font-size:.88rem">${parts}</span></p></div>`;
+    const fb = `<div class="feedback plain ${ok ? 'ok' : 'no'}"><p>${ok ? 'Верно!' : 'Правильно:'} <b>${esc(x.t)}</b> — «${esc(x.m)}».<br><span style="font-size:.88rem">${wordBreakdown(x)}</span></p></div>`;
     grade(ok, btns, ri, i, fb, null);
   });
 }
 
 /* ---------- tracing ---------- */
-let traceLetter = null;
 function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
 function trace() {
-  const x = forced ? BY[forced] : pickLetter(); forced = null;
-  if (!x) return emptyState(); last = x.g; traceLetter = x;
+  const x = pickLetter(); if (!x) return emptyState(); last = x.g;
   $('stage').innerHTML = `
     <div class="trace-wrap">
       <canvas id="cv" aria-label="Поле для прописи буквы ${x.g}"></canvas>
       <div class="trace-info"><span><b>${x.g}</b> — «${esc(x.s)}»</span><span>обведи пальцем</span></div>
     </div>
-    <label class="toggle"><input type="checkbox" id="guide" ${st.trace ? 'checked' : ''}> Показывать образец</label>
+    <label class="toggle"><input type="checkbox" id="guide" ${st.trace ? 'checked' : ''}>Показывать образец</label>
     <div class="row"><button class="btn ghost" id="clr">Стереть</button><button class="btn primary" id="nx">Следующая буква</button></div>
     <div class="feedback ok"><div class="g">${x.g}</div><p>${x.a}</p></div>`;
   const cv = $('cv'), ctx = cv.getContext('2d');
-  let strokes = [];
-  function size() {
-    const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
-    cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); draw();
-  }
+  let strokes = [], cur = null;
+  const dpr = () => window.devicePixelRatio || 1;
   function draw() {
-    const w = cv.width / (window.devicePixelRatio || 1), h = cv.height / (window.devicePixelRatio || 1);
+    const w = cv.width / dpr(), h = cv.height / dpr();
     ctx.clearRect(0, 0, w, h);
     ctx.strokeStyle = cssVar('--line'); ctx.lineWidth = 1; ctx.setLineDash([4, 6]);
     [0.3, 0.72].forEach(f => { ctx.beginPath(); ctx.moveTo(12, h * f); ctx.lineTo(w - 12, h * f); ctx.stroke(); });
@@ -661,7 +867,11 @@ function trace() {
     ctx.strokeStyle = cssVar('--accent'); ctx.lineWidth = 9; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     strokes.forEach(s => { ctx.beginPath(); s.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); if (s.length === 1) ctx.lineTo(s[0][0] + 0.1, s[0][1]); ctx.stroke(); });
   }
-  let cur = null;
+  function size() {
+    const r = cv.getBoundingClientRect();
+    cv.width = Math.round(r.width * dpr()); cv.height = Math.round(r.height * dpr());
+    ctx.setTransform(dpr(), 0, 0, dpr(), 0, 0); draw();
+  }
   const pos = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
   cv.addEventListener('pointerdown', e => { e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch (_) {} cur = [pos(e)]; strokes.push(cur); draw(); });
   cv.addEventListener('pointermove', e => { if (!cur) return; e.preventDefault(); cur.push(pos(e)); draw(); });
@@ -672,21 +882,20 @@ function trace() {
   $('guide').onchange = e => { st.trace = e.target.checked; save(); draw(); };
   size();
   if (document.fonts && document.fonts.load) document.fonts.load('500 120px "Noto Serif Georgian"', x.g).then(draw, () => {});
-  window.onresize = () => { if (st.mode === 'trace' && $('cv')) size(); };
+  window.onresize = () => { if (view === 'train' && st.mode === 'trace' && $('cv')) size(); };
 }
 
 /* ---------- blitz ---------- */
-let blitz = null;
 function stopBlitz() { if (blitz && blitz.timer) clearInterval(blitz.timer); blitz = null; }
 function blitzIntro() {
   stopBlitz();
-  const n = scopeLetters().length;
+  const n = poolFor(st.scope).length;
   if (!n) return emptyState();
   $('stage').innerHTML = `
     <div class="prompt">
       <div class="label">Блиц</div>
       <div class="big">60 сек</div>
-      <div class="sub">Буква → звук, сколько успеешь. Ошибка — минус 3 секунды.<br>Буквы: ${st.scope === 0 ? 'все 33' : 'текущая подборка (' + n + ')'}. Рекорд: ${st.blitzBest}.</div>
+      <div class="sub">Буква → звук, сколько успеешь. Ошибка — минус 3 секунды.<br>Букв в подборке: ${n}. Рекорд: ${st.blitzBest}.</div>
     </div>
     <button class="btn primary" id="go">Старт</button>`;
   $('go').onclick = startBlitz;
@@ -699,9 +908,8 @@ function startBlitz() {
 function tickBlitz() {
   if (!blitz) return;
   const left = Math.max(0, blitz.end - Date.now());
-  const t = $('tl'), bar = $('tbar');
-  if (t) t.textContent = Math.ceil(left / 1000) + ' с';
-  if (bar) bar.style.width = (left / 600) + '%';
+  if ($('tl')) $('tl').textContent = Math.ceil(left / 1000) + ' с';
+  if ($('tbar')) $('tbar').style.width = (left / 600) + '%';
   if (left <= 0) finishBlitz();
 }
 function blitzQ() {
@@ -713,45 +921,155 @@ function blitzQ() {
     <div class="prompt"><div class="glyph">${x.g}</div></div>
     <div class="options">${opts.map((o, i) => `<button class="opt" data-i="${i}">${esc(o.s)}</button>`).join('')}</div>`;
   tickBlitz();
-  const btns = Array.from(document.querySelectorAll('.opt')); const ri = opts.indexOf(x);
+  const btns = Array.from($('stage').querySelectorAll('.opt')), ri = opts.indexOf(x);
   let done = false;
   btns.forEach((b, i) => b.onclick = () => {
     if (done || !blitz) return; done = true;
-    const ok = i === ri;
-    blitz.total++;
-    if (ok) blitz.score++; else { blitz.miss.push(x.g); blitz.end -= 3000; }
+    const ok = i === ri, me = blitz;
+    me.total++;
+    if (ok) me.score++; else { me.miss.push(x.g); me.end -= 3000; }
     b.classList.add(ok ? 'right' : 'wrong'); if (!ok) btns[ri].classList.add('right');
     record(ok, x.g);
-    setTimeout(() => { if (blitz) blitzQ(); }, ok ? 180 : 650);
+    setTimeout(() => { if (blitz === me) blitzQ(); }, ok ? 180 : 650);
   });
 }
 function finishBlitz() {
   if (!blitz) return;
   const b = blitz; stopBlitz();
-  const rec = b.score > st.blitzBest; if (rec) { st.blitzBest = b.score; save(); renderTop(); }
+  const rec = b.score > st.blitzBest; if (rec) { st.blitzBest = b.score; save(); }
   const missed = Array.from(new Set(b.miss));
   $('stage').innerHTML = `
-    <div class="prompt result">
+    <div class="prompt result${rec ? ' pass' : ''}">
       <div class="label">${rec ? 'Новый рекорд!' : 'Время вышло'}</div>
       <div class="big">${b.score}</div>
       <div class="sub">${plural(b.score, 'правильный ответ', 'правильных ответа', 'правильных ответов')} из ${b.total}. Рекорд: ${st.blitzBest}.</div>
-      ${missed.length ? `<div class="sub" style="margin-top:8px">Ошибки — повтори эти буквы:</div><div class="missed">${missed.join(' ')}</div>` : '<div class="sub">Без единой ошибки!</div>'}
+      ${missed.length ? `<div class="sub">Ошибки — повтори эти буквы:</div><div class="missed">${missed.join(' ')}</div>` : '<div class="sub">Без единой ошибки!</div>'}
     </div>
     <div class="row"><button class="btn ghost" id="again">Ещё раз</button><button class="btn primary" id="toCards">${missed.length ? 'Разобрать ошибки' : 'К карточкам'}</button></div>`;
+  if (rec && b.score > 0) celebrate();
   $('again').onclick = startBlitz;
   $('toCards').onclick = () => { if (missed.length) forced = missed[0]; setMode('flash'); };
+}
+
+/* ---------- level exam ---------- */
+function buildExam(n) {
+  const qs = [];
+  if (n === LAST) {
+    shuffle(L).slice(0, 14).forEach((x, i) => qs.push({ t: i % 2 ? 's2l' : 'l2s', x: x }));
+    shuffle(WORDS).slice(0, 6).forEach(w => qs.push({ t: 'word', w: w }));
+  } else {
+    shuffle(levelLetters(n)).forEach((x, i) => qs.push({ t: i % 2 ? 's2l' : 'l2s', x: x }));
+    shuffle(WORDS.filter(w => w.d === n)).slice(0, 3).forEach(w => qs.push({ t: 'word', w: w }));
+    shuffle(L.filter(x => x.d < n)).slice(0, 3).forEach(x => qs.push({ t: 'l2s', x: x }));
+  }
+  const all = shuffle(qs);
+  return { n: n, qs: all, i: 0, mistakes: [], allowed: Math.max(1, Math.floor(all.length * 0.1)), locked: false };
+}
+function startExam(n) {
+  stopBlitz();
+  exam = buildExam(n);
+  show('exam');
+  const e = exam, lv = LEVELS[n - 1], r = readiness(n);
+  const parts = n === LAST ? '14 букв в обе стороны и 6 слов' : `каждая буква уровня, ${e.qs.filter(q => q.t === 'word').length} слова${n > 1 ? ' и 3 буквы из прошлых уровней' : ''}`;
+  $('exam').innerHTML = `
+    <div class="topbar"><button class="back" id="exQuit">← Путь</button><div class="tt">Экзамен · Уровень ${n}</div></div>
+    <div class="prompt">
+      <div class="label">Экзамен</div>
+      <div class="hero-title">${esc(lv.name)}</div>
+      <div class="sub">${e.qs.length} вопросов: ${parts}.<br>Можно ошибиться не больше ${e.allowed} ${plural(e.allowed, 'раза', 'раз', 'раз')}.</div>
+      ${!st.passed[n] && !r.ready ? `<div class="sub" style="color:var(--warn)">Закреплено ${r.done} из ${r.total} букв — можно попробовать раньше, но шанс сдать ниже.</div>` : ''}
+    </div>
+    <button class="btn primary" id="exGo">Начать</button>`;
+  $('exQuit').onclick = goHome;
+  $('exGo').onclick = examQ;
+}
+function examQ() {
+  const e = exam; if (!e) return;
+  const q = e.qs[e.i];
+  let prompt, labels, cls, ri, opts;
+  if (q.t === 'word') {
+    opts = wordOptions(q.w, WORDS.filter(w => w.d <= Math.min(e.n, 5)));
+    ri = opts.indexOf(q.w); labels = opts.map(o => esc(o.t)); cls = 'small';
+    prompt = `<div class="label">Прочитай слово</div><div class="word">${q.w.w}</div>`;
+  } else {
+    opts = letterOptions(q.x); ri = opts.indexOf(q.x);
+    if (q.t === 'l2s') { labels = opts.map(o => esc(o.s)); cls = ''; prompt = `<div class="label">Как читается?</div><div class="glyph">${q.x.g}</div>`; }
+    else { labels = opts.map(o => o.g); cls = 'g'; prompt = `<div class="label">Найди букву</div><div class="big-sound">${esc(q.x.s)}</div>${NOTE[q.x.s] ? `<div class="sub">${NOTE[q.x.s]}</div>` : ''}`; }
+  }
+  $('exam').innerHTML = `
+    <div class="topbar"><button class="back" id="exQuit">← Выйти</button><div class="tt">Экзамен · Уровень ${e.n}</div></div>
+    <div class="exam-prog"><div class="row-sb"><span>Вопрос <b>${e.i + 1}</b> из ${e.qs.length}</span><span>Ошибок: <b>${e.mistakes.length}</b> из ${e.allowed}</span></div><div class="bar"><i style="width:${e.i / e.qs.length * 100}%"></i></div></div>
+    <div class="prompt">${prompt}</div>
+    <div class="options">${labels.map((l, i) => `<button class="opt ${cls}" data-i="${i}">${l}</button>`).join('')}</div>
+    <div id="exFb"></div>`;
+  $('exQuit').onclick = goHome;
+  const btns = Array.from($('exam').querySelectorAll('.opt'));
+  btns.forEach((b, i) => b.onclick = () => {
+    if (e.locked || exam !== e) return; e.locked = true;
+    const ok = i === ri;
+    btns.forEach((bb, j) => { bb.disabled = true; if (j === ri) bb.classList.add('right'); else if (j === i) bb.classList.add('wrong'); });
+    record(ok, q.x ? q.x.g : null);
+    if (!ok) {
+      e.mistakes.push(q);
+      $('exFb').innerHTML = q.x ? feedbackHTML(false, q.x) : `<div class="feedback plain no"><p>Правильно: <b>${esc(q.w.t)}</b> — «${esc(q.w.m)}».</p></div>`;
+    }
+    setTimeout(() => {
+      if (exam !== e) return;
+      e.locked = false;
+      if (e.mistakes.length > e.allowed) return examResult(true);
+      e.i++;
+      if (e.i >= e.qs.length) examResult(false); else examQ();
+    }, ok ? 450 : 1800);
+  });
+}
+function examResult(early) {
+  const e = exam; exam = null; if (!e) return;
+  const answeredN = early ? e.i + 1 : e.qs.length;
+  const pct = Math.round((answeredN - e.mistakes.length) / e.qs.length * 100);
+  const passed = !early && e.mistakes.length <= e.allowed;
+  const prev = st.exams[e.n] || { best: 0, tries: 0 };
+  const firstPass = passed && !st.passed[e.n];
+  st.exams[e.n] = { best: passed ? Math.max(prev.best || 0, pct) : (prev.best || 0), tries: (prev.tries || 0) + 1, date: today() };
+  if (passed) st.passed[e.n] = true;
+  save();
+  const missLetters = Array.from(new Set(e.mistakes.filter(q => q.x).map(q => q.x.g)));
+  const details = e.mistakes.map(q => q.x
+    ? `<div class="feedback no"><div class="g">${q.x.g}</div><p>«${esc(q.x.s)}» — ${q.x.a}</p></div>`
+    : `<div class="feedback plain no"><p><span style="font-family:var(--f-glyph);font-size:1.2rem">${q.w.w}</span> — <b>${esc(q.w.t)}</b>, «${esc(q.w.m)}».<br><span style="font-size:.88rem">${wordBreakdown(q.w)}</span></p></div>`).join('');
+  let head, unlock = '', btns;
+  if (passed) {
+    head = `<div class="label">Экзамен сдан</div><div class="big">${pct}%</div><div class="sub">Уровень ${e.n} · ${esc(LEVELS[e.n - 1].name)}</div>${starsHTML(stars(e.n))}`;
+    if (firstPass && e.n < LAST) unlock = `<div class="unlock">Открыт <b>уровень ${e.n + 1}</b>: ${esc(LEVELS[e.n].name)} — <span class="gl">${levelLetters(e.n + 1).map(x => x.g).join(' ')}</span></div>`;
+    else if (firstPass) unlock = `<div class="unlock"><b>Весь алфавит пройден!</b> Теперь поддерживай буквы повторением, чтобы собрать все звёзды.</div>`;
+    btns = e.n < LAST ? `<button class="btn ghost" id="rHome">К пути</button><button class="btn primary" id="rNext">Уровень ${e.n + 1} →</button>` : `<button class="btn primary full" id="rHome">К пути</button>`;
+  } else {
+    head = `<div class="label">${early ? 'Слишком много ошибок' : 'Почти получилось'}</div><div class="big">${pct}%</div><div class="sub">Можно ошибиться не больше ${e.allowed} ${plural(e.allowed, 'раза', 'раз', 'раз')}. Потренируй буквы ниже и попробуй снова.</div>`;
+    btns = `<button class="btn ghost" id="rRetry">Пересдать</button><button class="btn primary" id="rTrain">Тренировать ошибки</button>`;
+  }
+  $('exam').innerHTML = `
+    <div class="topbar"><button class="back" id="exQuit">← Путь</button><div class="tt">Экзамен · Уровень ${e.n}</div></div>
+    <div class="prompt result${passed ? ' pass' : ''}">${head}${unlock}</div>
+    ${details ? `<div class="note">${passed ? 'Ошибки, на которые стоит посмотреть:' : 'Где были ошибки:'}</div>${details}` : ''}
+    <div class="row">${btns}</div>`;
+  $('exQuit').onclick = goHome;
+  if (passed) celebrate();
+  if ($('rHome')) $('rHome').onclick = goHome;
+  if ($('rNext')) $('rNext').onclick = () => openTrain(e.n + 1, 'flash');
+  if ($('rRetry')) $('rRetry').onclick = () => startExam(e.n);
+  if ($('rTrain')) $('rTrain').onclick = () => openTrain(e.n, 'flash', missLetters[0]);
 }
 
 /* ---------- keyboard ---------- */
 document.addEventListener('keydown', e => {
   if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+  if (view === 'home') return;
   const n = parseInt(e.key, 10);
-  if (n >= 1 && n <= 4) { const o = document.querySelectorAll('.opt')[n - 1]; if (o && !o.disabled) o.click(); return; }
-  if (e.key === 'Enter' || e.key === ' ') {
-    const nb = $('nextBtn') || $('flip') || $('yes');
+  if (n >= 1 && n <= 4) { const o = $(view).querySelectorAll('.opt')[n - 1]; if (o && !o.disabled) o.click(); return; }
+  if (view === 'train' && (e.key === 'Enter' || e.key === ' ')) {
+    const nb = $('nextBtn') || $('flip');
     if (nb && document.activeElement !== nb && !(document.activeElement && document.activeElement.id === 'cardInner')) { e.preventDefault(); nb.click(); }
   }
-  if (st.mode === 'flash' && $('yes')) { if (e.key === 'ArrowRight') $('yes').click(); if (e.key === 'ArrowLeft') $('no').click(); }
+  if (view === 'train' && st.mode === 'flash' && $('yes')) { if (e.key === 'ArrowRight') $('yes').click(); if (e.key === 'ArrowLeft') $('no').click(); }
 });
 
 /* ---------- settings: goal, backup, reset ---------- */
@@ -760,7 +1078,7 @@ function renderGoal() {
   [20, 40, 80, 150].forEach(v => {
     const c = document.createElement('button'); c.className = 'chip'; c.textContent = v;
     c.setAttribute('aria-pressed', st.goal === v ? 'true' : 'false');
-    c.onclick = () => { st.goal = v; save(); renderGoal(); renderTop(); };
+    c.onclick = () => { st.goal = v; save(); renderGoal(); renderHome(); };
     g.appendChild(c);
   });
 }
@@ -768,7 +1086,7 @@ function msg(t, ok) { const m = $('ioMsg'); m.textContent = t; m.className = 'ms
 function encode(o) { return 'MKH1.' + btoa(unescape(encodeURIComponent(JSON.stringify(o)))); }
 function decode(s) { s = s.trim(); if (s.indexOf('MKH1.') !== 0) throw new Error('bad'); return JSON.parse(decodeURIComponent(escape(atob(s.slice(5))))); }
 $('exportBtn').onclick = () => {
-  const code = encode(st); const io = $('io'); io.value = code;
+  const code = encode(st), io = $('io'); io.value = code;
   const fallback = () => { io.focus(); io.select(); msg('Код выделен — скопируй его вручную и сохрани в заметках.', true); };
   try {
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(code).then(() => msg('Код скопирован. Сохрани его в заметках.', true), fallback);
@@ -779,16 +1097,19 @@ $('importBtn').onclick = () => {
   try {
     const o = decode($('io').value);
     if (!o || typeof o.cards !== 'object') throw new Error('bad');
-    st = Object.assign(fresh(), o); save(); renderGoal(); renderTop(); next();
+    st = Object.assign(fresh(), o);
+    ['cards', 'days', 'passed', 'exams', 'readyShown'].forEach(k => { if (!st[k] || typeof st[k] !== 'object') st[k] = {}; });
+    if (!(st.scope === 'due' || st.scope === 'hard' || (typeof st.scope === 'number' && unlocked(st.scope)))) st.scope = currentLevel();
+    save(); renderGoal(); renderHome();
     msg('Прогресс восстановлен.', true);
   } catch (e) { msg('Не получилось прочитать код. Вставь его целиком, он начинается с MKH1.', false); }
 };
 $('resetBtn').onclick = () => {
   const b = $('resetBtn');
   if (b.dataset.armed) {
-    const keep = { scope: st.scope, mode: st.mode, goal: st.goal, trace: st.trace };
+    const keep = { mode: st.mode, goal: st.goal, trace: st.trace };
     st = Object.assign(fresh(), keep); save(); session = { right: 0, total: 0, streak: 0 };
-    delete b.dataset.armed; b.textContent = 'Сбросить прогресс'; renderTop(); next(); msg('Прогресс сброшен.', true);
+    delete b.dataset.armed; b.textContent = 'Сбросить прогресс'; renderHome(); msg('Прогресс сброшен.', true);
   } else {
     b.dataset.armed = '1'; b.textContent = 'Точно стереть всё? Нажми ещё раз';
     setTimeout(() => { if (b.dataset.armed) { delete b.dataset.armed; b.textContent = 'Сбросить прогресс'; } }, 4000);
@@ -796,11 +1117,11 @@ $('resetBtn').onclick = () => {
 };
 
 /* refresh due counters once a minute */
-setInterval(() => { if (!blitz) renderTop(); }, 60e3);
-document.addEventListener('visibilitychange', () => { if (!document.hidden && !blitz) renderTop(); });
+setInterval(() => { if (!blitz && !exam) refresh(); }, 60e3);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && !blitz && !exam) refresh(); });
 
-function start(d) { if (d && d.session) session = d.session; renderGoal(); renderTop(); next(); }
-if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(() => ({ session }));
+function start(d) { if (d && d.session) session = d.session; renderGoal(); show('home'); renderHome(); }
+if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(() => ({ session: session }));
 if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude.hot.ready(start); else start((window.claude && window.claude.hot && window.claude.hot.data) || {});
 
 /* PWA: offline + install hint */
