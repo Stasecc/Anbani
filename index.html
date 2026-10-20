@@ -209,6 +209,36 @@ h1 span { font-family: var(--f-glyph); color: var(--accent); font-weight: 700; m
 .play.mini { padding: 5px; margin: 0 0 0 6px; vertical-align: middle; }
 .play.mini svg { margin: 0; }
 .play.playing { background: var(--accent-soft); }
+.opt.geo { font-family: var(--f-glyph); font-weight: 500; font-size: 1.15rem; }
+.drill-q { font-size: 1.3rem; font-weight: 600; line-height: 1.35; }
+.wglyph { font-family: var(--f-glyph); font-weight: 500; font-size: 3rem; line-height: 1.2; color: var(--ink); word-break: break-word; }
+.wglyph.sm { font-size: 1.7rem; color: var(--accent); }
+.gk { font-family: var(--f-glyph); font-size: 1.15rem; }
+.muted { color: var(--muted); font-size: 0.85rem; }
+.lesson { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; grid-gap: 10px; gap: 10px; }
+.lesson p { margin: 0; }
+.lesson .label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+.wtiles { display: flex; flex-wrap: wrap; margin: 0 -6px -6px 0; }
+.wtile { border: 0; border-radius: 9px; padding: 6px 9px; margin: 0 6px 6px 0; font-family: var(--f-glyph); font-size: 0.95rem; line-height: 1.2; position: relative; }
+.wtile.lock { opacity: .4; }
+.wtile.due::after { content: ""; position: absolute; top: 3px; right: 3px; width: 6px; height: 6px; border-radius: 50%; background: var(--warn); }
+.more { font-size: 0.85rem; color: var(--muted); align-self: center; margin-bottom: 6px; }
+.path-group { font-size: 0.78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; padding: 14px 0 4px 52px; position: relative; }
+.tabs.four { grid-template-columns: repeat(4, 1fr); }
+.sync-status { font-size: 0.82rem; }
+.sync-status.ok { color: var(--good); } .sync-status.no { color: var(--bad); }
+.tokin { width: 100%; font: 0.85rem ui-monospace, Menlo, monospace; border: 1px solid var(--line); border-radius: 10px; padding: 8px; background: var(--sunken); color: var(--ink); }
+.inner ol { margin: 0; padding-left: 20px; }
+.inner ol li + li { margin-top: 4px; }
+.inner a { color: var(--accent); font-weight: 600; }
+@media (min-width: 700px) {
+  .app { max-width: 640px; }
+  .card { height: 430px; }
+  .glyph { font-size: 11rem; }
+  .prompt .glyph { font-size: 9rem; }
+  .tile { width: 42px; height: 42px; font-size: 1.35rem; }
+  body { font-size: 17px; }
+}
 .ver { text-align: center; font-size: 0.75rem; color: var(--muted); padding-top: 4px; font-variant-numeric: tabular-nums; }
 
 .row { display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px; gap: 10px; }
@@ -339,6 +369,10 @@ body { margin: 0; }
           <div class="legend"><span class="sw" style="background:var(--box0)"></span>новая → <span class="sw" style="background:var(--box2)"></span>закреплена → <span class="sw" style="background:var(--box5)"></span>держится неделю<span class="dot"></span>пора повторить</div>
         </div>
       </details>
+      <details id="syncDetails">
+        <summary>Синхронизация с планшетом</summary>
+        <div class="inner" id="syncBox"></div>
+      </details>
       <details>
         <summary>Что нового</summary>
         <div class="inner" id="whatsNew"></div>
@@ -346,7 +380,9 @@ body { margin: 0; }
       <details>
         <summary>Настройки и резервная копия</summary>
         <div class="inner">
-          <div>Озвучка:</div>
+          <div>Звуки ответов (правильно / ошибка):</div>
+          <div class="btns" id="sfxset"></div>
+          <div>Озвучка букв и слов:</div>
           <div class="btns" id="voiceset"></div>
           <div>Тема оформления:</div>
           <div class="btns" id="themeset"></div>
@@ -366,14 +402,7 @@ body { margin: 0; }
   <section class="room" id="train" hidden>
     <div class="topbar"><button class="back" id="backBtn">← Путь</button><div class="tt" id="trainTitle"></div></div>
     <div id="readyBar"></div>
-    <div class="tabs" role="tablist" id="tabs">
-      <button class="tab" role="tab" data-mode="flash">Карточки</button>
-      <button class="tab" role="tab" data-mode="l2s">Буква → звук</button>
-      <button class="tab" role="tab" data-mode="s2l">Звук → буква</button>
-      <button class="tab" role="tab" data-mode="words">Слова</button>
-      <button class="tab" role="tab" data-mode="trace">Прописи</button>
-      <button class="tab" role="tab" data-mode="blitz">Блиц 60 сек</button>
-    </div>
+    <div class="tabs" role="tablist" id="tabs"></div>
     <main class="stage" id="stage" aria-live="polite"></main>
     <details><summary>Как произносить похожие звуки</summary><div class="guide-box" id="guideTrain"></div></details>
   </section>
@@ -386,19 +415,19 @@ body { margin: 0; }
 <script>
 const L = [
  ['ა','а',1,'აფთიაქი','аптиаки','аптека','<b>Аист в гнезде</b>: внизу круглое гнездо-чаша, из него вверх тянется изогнутая шея с головой. Буква низкая, не выходит за строку. Аист → «а»'],
- ['ბ','б',2,'ბათუმი','батуми','Батуми','<b>Бомба</b>: круглый шар, сверху фитиль-завиток торчит над строкой. Бомба → «б». Не путай с ნ (там прямая ножка с флажком)'],
+ ['ბ','б',2,'ბათუმი','батуми','Батуми','<b>Бомба</b> (в английских учебниках — ботинок, boot): круглый шар, сверху фитиль-завиток над строкой. Бомба → «б». Не путай с ნ (там прямая ножка с флажком)'],
  ['გ','г',3,'გამარჯობა','гамарджоба','привет','<b>Груша</b>: маленький хвостик-головка сверху, большое круглое брюшко опускается под строку. Груша → «г»'],
  ['დ','д',2,'დიახ','диах','да (вежливо)','<b>Дельфин в прыжке</b>: петля-тело поднимается над строкой, хвост уходит вниз влево. Дельфин → «д». Не путай с ღ: она ниже и из двух открытых горбов'],
  ['ე','э',1,'ერთი','эрти','один','<b>Эхо в колодце</b>: глубокий колодец-«U» уходит под строку, левая стенка короткая и загнута. Крикни в колодец «Э-э!» → «э»'],
  ['ვ','в',2,'ვაშლი','вашли','яблоко','<b>Цифра 3</b>: верхняя и нижняя дуга одинаковые, нижняя под строкой. «Вот тройка» → «в». Не путай с კ (там верх маленький)'],
- ['ზ','з',3,'ზღვა','згхва','море','<b>Змея</b> свернулась восьмёркой, кончик хвоста торчит сверху слева. Змея → «з»'],
+ ['ზ','з',3,'ზღვა','згхва','море','<b>Знак процента</b> или змея восьмёркой: две петли друг над другом, хвостик торчит сверху слева. Знак, змея → «з»'],
  ['თ','т',3,'თბილისი','тбилиси','Тбилиси','<b>Тоннель</b>: две арки, левая замкнута в кольцо. Тоннель → «т» (с выдохом). Не путай с ო, где обе арки открыты'],
  ['ი','и',1,'ია','иа','фиалка','<b>Иглу</b>: одна низкая арка, как ледяной домик. Иглу → «и»'],
  ['კ',"к'",4,'კაფე',"к'афэ",'кафе','<b>Капля на крючке</b>: маленький крючок сверху, большая капля-брюшко висит под строкой. Крючок → «к\'» (сжатый). Не путай с ვ, где обе половинки равные'],
- ['ლ','л',2,'ლარი','лари','лари (деньги)','<b>Лодка на волнах</b>: сверху три гребня-волны, снизу длинный изгиб-лодка уходит влево под строку. Лодка → «л». У ღ гребней два'],
+ ['ლ','л',2,'ლარი','лари','лари (деньги)','<b>Лари</b>: знак грузинской валюты ₾ нарисован из этой буквы, а на ценниках лари сокращают до ლ → «л». Форма: три гребня сверху и длинный хвост снизу. У ღ гребней два'],
  ['მ','м',1,'მაღაზია','магхазиа','магазин','<b>Мышка</b>: круглое тельце, справа поднимается хвост и загибается влево. Мышка → «м». Не путай с ძ: там палка прямая'],
  ['ნ','н',1,'ნახვამდის','нахвамдис','до свидания','<b>Нота</b>: кружок-головка внизу, высокая ножка с флажком наверху. Нота → «н». Ловушка: похожа на русскую «б», но это «н»'],
- ['ო','о',1,'ორი','ори','два','<b>Две открытые арки</b>, как латинская m. Ловушка: «О, это не m!» → «о». Если левая арка замкнута — это თ'],
+ ['ო','о',1,'ორი','ори','два','<b>Арки Макдональдса</b>: две открытые арки, как буква M на вывеске. «О, Макдональдс!» → «о». Если левая арка замкнута — это თ'],
  ['პ',"п'",4,'პური',"п'ури",'хлеб','<b>Пружина</b>: сверху пружинка-зигзаг над строкой, снизу подкова. Пружина → «п\'» (сжатый)'],
  ['ჟ','ж',5,'ჟურნალი','журнали','журнал','<b>Жестяная банка</b> с откинутой крышкой: колодец ე, сверху флажок-крышка. Жесть → «ж»'],
  ['რ','р',1,'რესტორანი',"рэст'орани",'ресторан','<b>Рука машет</b>: арка, левый конец взлетает вверх с крючком, как поднятая рука. Рука → «р»'],
@@ -407,17 +436,17 @@ const L = [
  ['უ','у',1,'უნივერსიტეტი',"унивэрсит'эт'и",'университет','<b>Удочка</b>: колодец ე, а сверху закинута леска-завиток. Удочка → «у»'],
  ['ფ','п',3,'ფული','пули','деньги','<b>Пенсне</b>: две петли-линзы рядом, нижняя уходит под строку. Пенсне → «п» (с выдохом). Не «ф»!'],
  ['ქ','к',3,'ქუჩა','куча','улица','<b>Клюшка</b>: высокая палка от верха до низа, посередине слева маленький крюк. Клюшка → «к» (с выдохом)'],
- ['ღ','гх',5,'ღვინო','гхвино','вино','<b>Сердечко</b> — так ღ ставят в никах: два горба и хвост вниз. С сердечка начинается ღვინო (вино) → «гх»'],
- ['ყ','къ',4,'ყავა','къава','кофе','<b>Латинская y</b>: две ветки сверху, хвост уходит под строку. Игрек кашлянул из горла: «къ!»'],
+ ['ღ','гх',5,'ღვინო','гхвино','вино','<b>Сердечко</b> — так ღ ставят в никах: два горба и хвост вниз. Звук как украинское «г» в «Галя» или французское r → «гх». С сердечка начинается ღვინო (вино)'],
+ ['ყ','къ',4,'ყავა','къава','кофе','<b>Латинская y</b>, но звучит совсем не как «и»: игрек кашлянул из горла — «къ!» Две ветки сверху, хвост под строкой'],
  ['შ','ш',5,'შაურმა','шаурма','шаурма','<b>Мышка в шапке</b>: та же მ, но сверху шапочка-завиток. Шапка → «ш»'],
- ['ჩ','ч',5,'ჩაი','чаи','чай','<b>Стул</b> (как латинская h): высокая спинка и сиденье. Сели на стул пить чай → «ч» (с выдохом)'],
+ ['ჩ','ч',5,'ჩაი','чаи','чай','<b>Перевёрнутая Ч</b>: переверни ჩ вверх ногами — получится русская Ч. Звук тот же → «ч» (с выдохом)'],
  ['ც','ц',5,'ცა','ца','небо','<b>Цепь</b>: длинная дуга опускается под строку, правый конец закручен в колечко-звено. Цепь → «ц» (с выдохом)'],
  ['ძ','дз',5,'ძაღლი','дзагхли','собака','<b>Латинская d</b>: кружок и прямая высокая палка. D + z → «дз». У მ хвост загнут, у ძ прямой'],
  ['წ',"ц'",4,'წყალი',"ц'къали",'вода','<b>Царь</b>: как нота ნ, только на верхушке корона. Царь → «ц\'» (сжатый)'],
  ['ჭ',"ч'",4,'ჭაჭა',"ч'ач'а",'чача','<b>Чек со знаком $</b>: вертикаль перечёркнута, внизу петля. Чек → «ч\'» (сжатый)'],
  ['ხ','х',3,'ხაჭაპური',"хач'ап'ури",'хачапури','<b>Хата с трубой</b> (как латинская b): высокая труба и круглый дом. Хата → «х»'],
- ['ჯ','дж',5,'ჯინსი','джинси','джинсы','<b>Джентльмен</b> закинул ногу на ногу: линии перекрещиваются, внизу петля. Джентльмен → «дж»'],
- ['ჰ','h',5,'ჰაერი','hаэри','воздух','<b>Тройка с паром</b>: над цифрой 3 поднимается завиток — выдох. Пар, выдох → «h»'],
+ ['ჯ','дж',5,'ჯინსი','джинси','джинсы','<b>Джентльмен</b> закинул ногу на ногу: линии перекрещиваются, внизу петля. От руки её пишут похоже на цифру 5 с крестиком → «дж»'],
+ ['ჰ','h',5,'ჰაერი','hаэри','воздух','<b>h из hello</b>: тройка, над которой поднимается завиток-выдох. Лёгкий выдох, как английское h в hello → «h»'],
 ].map(([g,s,d,w,wt,wm,a]) => ({g,s,d,w,wt,wm,a}));
 const BY = Object.fromEntries(L.map(x => [x.g, x]));
 
@@ -428,9 +457,188 @@ const WORDS = [
  ['კაფე',"к'афэ",'кафе',4],['პური',"п'ури",'хлеб',4],['ტაქსი',"т'акси",'такси',4],['ჭაჭა',"ч'ач'а",'чача',4],['წყალი',"ц'къали",'вода',4],['ყავა','къава','кофе',4],['ბანკი',"банк'и",'банк',4],
  ['ღვინო','гхвино','вино',5],['ჩაი','чаи','чай',5],['ძაღლი','дзагхли','собака',5],['შენ','шэн','ты',5],['გამარჯობა','гамарджоба','привет',5],['მადლობა','мадлоба','спасибо',5],['ხაჭაპური',"хач'ап'ури",'хачапури',5],['მაღაზია','магхазиа','магазин',5],
 ].map(([w,t,m,d]) => ({w,t,m,d}));
-const AUDIO = {"ა": "audio/f4004f9401.mp3", "აფთიაქი": "audio/b3b2ddbd46.mp3", "ბა": "audio/f2778b719c.mp3", "ბათუმი": "audio/72263483ec.mp3", "გა": "audio/b6aadad50f.mp3", "გამარჯობა": "audio/1094cd1a70.mp3", "და": "audio/8262dc632e.mp3", "დიახ": "audio/1b58fd80f5.mp3", "ე": "audio/5cc42eb382.mp3", "ერთი": "audio/0d6f2da9e4.mp3", "ვა": "audio/1459d77164.mp3", "ვაშლი": "audio/462d6fce46.mp3", "ზა": "audio/d8340bfd30.mp3", "ზღვა": "audio/bf53cafe65.mp3", "თა": "audio/44420d8c2e.mp3", "თბილისი": "audio/557fb75ee5.mp3", "ი": "audio/3e083f50c8.mp3", "ია": "audio/92bffae001.mp3", "კა": "audio/9b99747143.mp3", "კაფე": "audio/606de02120.mp3", "ლა": "audio/480c4d4368.mp3", "ლარი": "audio/ce574fda44.mp3", "მა": "audio/ca100cb1f4.mp3", "მაღაზია": "audio/4471ba3ef0.mp3", "ნა": "audio/0a35b12b65.mp3", "ნახვამდის": "audio/31b5609bfe.mp3", "ო": "audio/a9643cdc3b.mp3", "ორი": "audio/95885e210a.mp3", "პა": "audio/8709d63e80.mp3", "პური": "audio/58b14dbe65.mp3", "ჟა": "audio/40faf4ea50.mp3", "ჟურნალი": "audio/d7455702ac.mp3", "რა": "audio/bce5eeccbf.mp3", "რესტორანი": "audio/52aa45bc48.mp3", "სა": "audio/47f74b1714.mp3", "სამი": "audio/97523ec35d.mp3", "ტა": "audio/bbd6683d95.mp3", "ტაქსი": "audio/a72a794464.mp3", "უ": "audio/8d4dca6a0b.mp3", "უნივერსიტეტი": "audio/2eec26a1f7.mp3", "ფა": "audio/fd42213ceb.mp3", "ფული": "audio/15ebe49a06.mp3", "ქა": "audio/7b0fc011c6.mp3", "ქუჩა": "audio/bdaaf1a34c.mp3", "ღა": "audio/5a84e11f3b.mp3", "ღვინო": "audio/c45d68f066.mp3", "ყა": "audio/a62a0cb4a7.mp3", "ყავა": "audio/f22753fda4.mp3", "შა": "audio/18594b34b7.mp3", "შაურმა": "audio/8a436210b7.mp3", "ჩა": "audio/a82ba13396.mp3", "ჩაი": "audio/6bc8b59f77.mp3", "ცა": "audio/9abb4e7ae5.mp3", "ძა": "audio/b5445e2e79.mp3", "ძაღლი": "audio/67b113e065.mp3", "წა": "audio/1282dda842.mp3", "წყალი": "audio/c0654df3fa.mp3", "ჭა": "audio/620c4c7cab.mp3", "ჭაჭა": "audio/00e2b8c65f.mp3", "ხა": "audio/5a38ed4672.mp3", "ხაჭაპური": "audio/7e2d96bf0f.mp3", "ჯა": "audio/da7ac902db.mp3", "ჯინსი": "audio/523cc0f093.mp3", "ჰა": "audio/d93fe7d46c.mp3", "ჰაერი": "audio/cd0ad7b2f8.mp3", "მამა": "audio/463b9cf7e5.mp3", "მე": "audio/36640baf9e.mp3", "არა": "audio/c9988b03aa.mp3", "ნუ": "audio/0a274a4e9d.mp3", "დედა": "audio/748611d0e9.mp3", "ბანანი": "audio/78984f5f14.mp3", "ლიმონი": "audio/f5a4cf964c.mp3", "ვარ": "audio/dc0116b5bc.mp3", "ქალაქი": "audio/9fbc14059d.mp3", "გული": "audio/68d96d8b8c.mp3", "ოთხი": "audio/8dca6e8ed3.mp3", "ხუთი": "audio/066e9c301e.mp3", "ათი": "audio/03bb4df892.mp3", "ბანკი": "audio/a22c621bc9.mp3", "შენ": "audio/f8b5686cc3.mp3", "მადლობა": "audio/74634f41f5.mp3"};
-const APP_VER = '1.4', BUILD = '20.10.2026';
+const AUDIO = {"ა": "audio/f4004f9401.mp3", "აფთიაქი": "audio/b3b2ddbd46.mp3", "ბა": "audio/f2778b719c.mp3", "ბათუმი": "audio/72263483ec.mp3", "გა": "audio/b6aadad50f.mp3", "გამარჯობა": "audio/1094cd1a70.mp3", "და": "audio/8262dc632e.mp3", "დიახ": "audio/1b58fd80f5.mp3", "ე": "audio/5cc42eb382.mp3", "ერთი": "audio/0d6f2da9e4.mp3", "ვა": "audio/1459d77164.mp3", "ვაშლი": "audio/462d6fce46.mp3", "ზა": "audio/d8340bfd30.mp3", "ზღვა": "audio/bf53cafe65.mp3", "თა": "audio/44420d8c2e.mp3", "თბილისი": "audio/557fb75ee5.mp3", "ი": "audio/3e083f50c8.mp3", "ია": "audio/92bffae001.mp3", "კა": "audio/9b99747143.mp3", "კაფე": "audio/606de02120.mp3", "ლა": "audio/480c4d4368.mp3", "ლარი": "audio/ce574fda44.mp3", "მა": "audio/ca100cb1f4.mp3", "მაღაზია": "audio/4471ba3ef0.mp3", "ნა": "audio/0a35b12b65.mp3", "ნახვამდის": "audio/31b5609bfe.mp3", "ო": "audio/a9643cdc3b.mp3", "ორი": "audio/95885e210a.mp3", "პა": "audio/8709d63e80.mp3", "პური": "audio/58b14dbe65.mp3", "ჟა": "audio/40faf4ea50.mp3", "ჟურნალი": "audio/d7455702ac.mp3", "რა": "audio/bce5eeccbf.mp3", "რესტორანი": "audio/52aa45bc48.mp3", "სა": "audio/47f74b1714.mp3", "სამი": "audio/97523ec35d.mp3", "ტა": "audio/bbd6683d95.mp3", "ტაქსი": "audio/a72a794464.mp3", "უ": "audio/8d4dca6a0b.mp3", "უნივერსიტეტი": "audio/2eec26a1f7.mp3", "ფა": "audio/fd42213ceb.mp3", "ფული": "audio/15ebe49a06.mp3", "ქა": "audio/7b0fc011c6.mp3", "ქუჩა": "audio/bdaaf1a34c.mp3", "ღა": "audio/5a84e11f3b.mp3", "ღვინო": "audio/c45d68f066.mp3", "ყა": "audio/a62a0cb4a7.mp3", "ყავა": "audio/f22753fda4.mp3", "შა": "audio/18594b34b7.mp3", "შაურმა": "audio/8a436210b7.mp3", "ჩა": "audio/a82ba13396.mp3", "ჩაი": "audio/6bc8b59f77.mp3", "ცა": "audio/9abb4e7ae5.mp3", "ძა": "audio/b5445e2e79.mp3", "ძაღლი": "audio/67b113e065.mp3", "წა": "audio/1282dda842.mp3", "წყალი": "audio/c0654df3fa.mp3", "ჭა": "audio/620c4c7cab.mp3", "ჭაჭა": "audio/00e2b8c65f.mp3", "ხა": "audio/5a38ed4672.mp3", "ხაჭაპური": "audio/7e2d96bf0f.mp3", "ჯა": "audio/da7ac902db.mp3", "ჯინსი": "audio/523cc0f093.mp3", "ჰა": "audio/d93fe7d46c.mp3", "ჰაერი": "audio/cd0ad7b2f8.mp3", "მამა": "audio/463b9cf7e5.mp3", "მე": "audio/36640baf9e.mp3", "არა": "audio/c9988b03aa.mp3", "ნუ": "audio/0a274a4e9d.mp3", "დედა": "audio/748611d0e9.mp3", "ბანანი": "audio/78984f5f14.mp3", "ლიმონი": "audio/f5a4cf964c.mp3", "ვარ": "audio/dc0116b5bc.mp3", "ქალაქი": "audio/9fbc14059d.mp3", "გული": "audio/68d96d8b8c.mp3", "ოთხი": "audio/8dca6e8ed3.mp3", "ხუთი": "audio/066e9c301e.mp3", "ათი": "audio/03bb4df892.mp3", "ბანკი": "audio/a22c621bc9.mp3", "შენ": "audio/f8b5686cc3.mp3", "მადლობა": "audio/74634f41f5.mp3", "ღიაა": "audio/a5187fa1b6.mp3", "დაკეტილია": "audio/a44dbc0c85.mp3", "შესასვლელი": "audio/99ed511e12.mp3", "გასასვლელი": "audio/ecf3d1aea5.mp3", "ტუალეტი": "audio/085b1c274a.mp3", "სალარო": "audio/c150aa4d27.mp3", "ფასდაკლება": "audio/96d847d8a0.mp3", "აქცია": "audio/49f4618a49.mp3", "ბანკომატი": "audio/ab7ed4636e.mp3", "ვალუტის გადაცვლა": "audio/55a7d8782a.mp3", "საცხობი": "audio/1f417f0023.mp3", "სილამაზის სალონი": "audio/08b1beec14.mp3", "მოწევა აკრძალულია": "audio/d73eb4abbf.mp3", "ავერსი": "audio/2c122cb173.mp3", "გუდვილი": "audio/1bb54edaf7.mp3", "რძე": "audio/4a1ecbbacc.mp3", "კვერცხი": "audio/1de3a76546.mp3", "ყველი": "audio/67fdc1cedb.mp3", "კარაქი": "audio/9e66e699aa.mp3", "მაწონი": "audio/9d6da839fd.mp3", "ხაჭო": "audio/df602d1844.mp3", "ქათამი": "audio/a172d2a52e.mp3", "ხორცი": "audio/8de88b1648.mp3", "თევზი": "audio/fd31a7e8c5.mp3", "ბრინჯი": "audio/17e1cf0b37.mp3", "შაქარი": "audio/0d0d46d5cd.mp3", "მარილი": "audio/c2b5443942.mp3", "ზეთი": "audio/458d473548.mp3", "წვენი": "audio/916e698024.mp3", "ლუდი": "audio/8758bea5cc.mp3", "ხილი": "audio/8cf3838311.mp3", "ბოსტნეული": "audio/7b521f3169.mp3", "პომიდორი": "audio/b089ea12a3.mp3", "კიტრი": "audio/0005b6e896.mp3", "კარტოფილი": "audio/622e4f3bcf.mp3", "ნაყინი": "audio/7578d05c72.mp3", "მიწოდება": "audio/d01dd14fe3.mp3", "შეკვეთა": "audio/daec91abb4.mp3", "მენიუ": "audio/1f844377f3.mp3", "ანგარიში": "audio/4af2aa5558.mp3", "ხინკალი": "audio/336dc47dd9.mp3", "ლობიანი": "audio/b9ca841d0b.mp3", "მწვადი": "audio/d2b91e9c32.mp3", "ჩურჩხელა": "audio/263a613045.mp3", "ბადრიჯანი": "audio/27ceeef7ac.mp3", "სალათი": "audio/ec167da4f0.mp3", "წვნიანი": "audio/7663af33fa.mp3", "ოჯახური": "audio/b9be0787f0.mp3", "ცხელი": "audio/99ba141b5f.mp3", "ცივი": "audio/27a9321ece.mp3", "გემრიელია": "audio/23944f98f9.mp3", "ყავა რძით": "audio/4f2f90fa72.mp3", "გამზირი": "audio/f3a6bcbd91.mp3", "მოედანი": "audio/c5d2ed0b61.mp3", "ბაზარი": "audio/ad3d53fde1.mp3", "ავტობუსი": "audio/8b2d3315be.mp3", "გაჩერება": "audio/9b810d794d.mp3", "სადგური": "audio/58a7d2b007.mp3", "აეროპორტი": "audio/f98a4f76c9.mp3", "პლაჟი": "audio/7cbca04254.mp3", "სასტუმრო": "audio/2807608854.mp3", "მარცხნივ": "audio/21561ceabc.mp3", "მარჯვნივ": "audio/0cbe0ad98d.mp3", "პირდაპირ": "audio/731a893bc3.mp3", "აქ გააჩერეთ": "audio/8c5b3ba93a.mp3", "მე ვარ": "audio/5e54f102d5.mp3", "შენ ხარ": "audio/67fd2a37fe.mp3", "ის არის": "audio/28425cdfcb.mp3", "ჩვენ ვართ": "audio/70207b3c54.mp3", "თქვენ ხართ": "audio/a2bc2b0ae9.mp3", "ისინი არიან": "audio/5f6eaa490e.mp3", "ეს კაფეა": "audio/fd576b16eb.mp3", "ეს ბათუმია": "audio/b7198d4a5d.mp3", "ბათუმში": "audio/b473040976.mp3", "სახლში": "audio/af80fbc1ac.mp3", "მაღაზიაში": "audio/a2aa39e8d7.mp3", "პლაჟზე": "audio/079cec32bb.mp3", "მაგიდაზე": "audio/e64108dcec.mp3", "ვაშლები": "audio/b2f76a49ab.mp3", "ქალაქები": "audio/1e7d9de579.mp3", "ორი ვაშლი": "audio/a153cd26bc.mp3", "ყავა მინდა": "audio/993cc53c54.mp3", "არ მინდა": "audio/36f7b567ef.mp3", "გინდა?": "audio/b773d1e1d0.mp3", "მაქვს": "audio/0e6e7e66ad.mp3", "არ მაქვს": "audio/e166e830dd.mp3", "მიყვარს ბათუმი": "audio/1cd6dda6ee.mp3", "არ მესმის": "audio/2b9386b4a7.mp3", "ქართული არ ვიცი": "audio/0956382733.mp3", "რა ღირს?": "audio/3096532475.mp3", "სად არის?": "audio/e3ad84a245.mp3", "როგორ ხარ?": "audio/4d9e5e7656.mp3", "კარგად": "audio/49578da3e1.mp3", "გთხოვთ": "audio/000e0ff115.mp3", "ბოდიში": "audio/f5c68895d1.mp3", "ანგარიში, თუ შეიძლება": "audio/33d4458840.mp3", "ნელა, თუ შეიძლება": "audio/6ef57a3d11.mp3"};
+/* Chapter 2–3: reading the city and basic grammar. Items: [Georgian, transliteration, meaning] */
+const VOC = [
+  { n: 7, group: 'Читаем город', name: 'Вывески на улице', kind: 'words', items: [
+    ['ღიაა', 'гхиаа', 'открыто'],
+    ['დაკეტილია', "дак'эт'илиа", 'закрыто'],
+    ['შესასვლელი', 'шэсасвлэли', 'вход'],
+    ['გასასვლელი', 'гасасвлэли', 'выход'],
+    ['აფთიაქი', 'аптиаки', 'аптека'],
+    ['ტუალეტი', "т'уалэт'и", 'туалет'],
+    ['სალარო', 'саларо', 'касса'],
+    ['ფასდაკლება', "пасдак'лэба", 'скидка'],
+    ['აქცია', 'акциа', 'акция, распродажа'],
+    ['ბანკომატი', "банк'омат'и", 'банкомат'],
+    ['ვალუტის გადაცვლა', "валут'ис гадацвла", 'обмен валюты'],
+    ['საცხობი', 'сацхоби', 'пекарня'],
+    ['სილამაზის სალონი', 'силамазис салони', 'салон красоты'],
+    ['მოწევა აკრძალულია', "моц'эва ак'рдзалулиа", 'курить запрещено'],
+    ['ავერსი', 'аверси', 'аптеки «Аверси»'],
+    ['გუდვილი', 'гудвили', 'супермаркет «Гудвил»']
+  ]},
+  { n: 8, name: 'Продукты: Glovo и Wolt', kind: 'words', items: [
+    ['პური', "п'ури", 'хлеб'],
+    ['რძე', 'рдзэ', 'молоко'],
+    ['კვერცხი', "к'вэрцхи", 'яйца'],
+    ['ყველი', 'къвэли', 'сыр'],
+    ['კარაქი', "к'араки", 'сливочное масло'],
+    ['მაწონი', "мац'они", 'мацони (кислое молоко)'],
+    ['ხაჭო', "хач'о", 'творог'],
+    ['ქათამი', 'катами', 'курица'],
+    ['ხორცი', 'хорци', 'мясо'],
+    ['თევზი', 'тэвзи', 'рыба'],
+    ['ბრინჯი', 'бринджи', 'рис'],
+    ['შაქარი', 'шакари', 'сахар'],
+    ['მარილი', 'марили', 'соль'],
+    ['ზეთი', 'зэти', 'растительное масло'],
+    ['წვენი', "ц'вэни", 'сок'],
+    ['ლუდი', 'луди', 'пиво'],
+    ['ხილი', 'хили', 'фрукты'],
+    ['ბოსტნეული', "бост'нэули", 'овощи'],
+    ['პომიდორი', "п'омидори", 'помидоры'],
+    ['კიტრი', "к'ит'ри", 'огурцы'],
+    ['კარტოფილი', "к'арт'опили", 'картофель'],
+    ['ნაყინი', 'накъини', 'мороженое'],
+    ['მიწოდება', "миц'одэба", 'доставка'],
+    ['შეკვეთა', "шэк'вэта", 'заказ']
+  ]},
+  { n: 9, name: 'Кафе и меню', kind: 'words', items: [
+    ['მენიუ', 'мэниу', 'меню'],
+    ['ანგარიში', 'ангариши', 'счёт'],
+    ['ხინკალი', "хинк'али", 'хинкали'],
+    ['ლობიანი', 'лобиани', 'лобиани (пирог с фасолью)'],
+    ['მწვადი', "мц'вади", 'шашлык'],
+    ['ჩურჩხელა', 'чурчхэла', 'чурчхела'],
+    ['ბადრიჯანი', 'бадриджани', 'баклажаны'],
+    ['სალათი', 'салати', 'салат'],
+    ['წვნიანი', "ц'вниани", 'суп'],
+    ['ოჯახური', 'оджахури', 'оджахури (жаркое по-домашнему)'],
+    ['ცხელი', 'цхэли', 'горячий'],
+    ['ცივი', 'циви', 'холодный'],
+    ['გემრიელია', 'гэмриэлиа', 'вкусно'],
+    ['ყავა რძით', 'къава рдзит', 'кофе с молоком']
+  ]},
+  { n: 10, name: 'Город и транспорт', kind: 'words', items: [
+    ['ქუჩა', 'куча', 'улица'],
+    ['გამზირი', 'гамзири', 'проспект'],
+    ['მოედანი', 'моэдани', 'площадь'],
+    ['ბაზარი', 'базари', 'рынок'],
+    ['ავტობუსი', "авт'обуси", 'автобус'],
+    ['გაჩერება', 'гачэрэба', 'остановка'],
+    ['სადგური', 'садгури', 'вокзал, станция'],
+    ['აეროპორტი', "аэроп'орт'и", 'аэропорт'],
+    ['პლაჟი', "п'лажи", 'пляж'],
+    ['სასტუმრო', "саст'умро", 'гостиница'],
+    ['მარცხნივ', 'марцхнив', 'налево'],
+    ['მარჯვნივ', 'марджвнив', 'направо'],
+    ['პირდაპირ', "п'ирдап'ир", 'прямо'],
+    ['აქ გააჩერეთ', 'ак гаачэрэт', 'остановите здесь']
+  ]},
+  { n: 11, group: 'Основы грамматики', name: 'Я, ты, он и «быть»', kind: 'grammar',
+    lesson: `<p><b>Местоимения.</b> მე — я, შენ — ты, ის — он <i>и</i> она (рода в грузинском нет), ჩვენ — мы, თქვენ — вы, ისინი — они.</p>
+<p><b>Глагол «быть»</b> меняется по лицам: მე <b>ვარ</b>, შენ <b>ხარ</b>, ის <b>არის</b>, ჩვენ <b>ვართ</b>, თქვენ <b>ხართ</b>, ისინი <b>არიან</b>.</p>
+<p><b>Короткое «это есть».</b> არის часто приклеивается к слову как <b>-ა</b>: ეს კაფეა — это кафе, ეს ბათუმია — это Батуми. ეს — «это».</p>`,
+    items: [
+      ['მე ვარ', 'мэ вар', 'я есть (я)'],
+      ['შენ ხარ', 'шэн хар', 'ты есть (ты)'],
+      ['ის არის', 'ис арис', 'он / она есть'],
+      ['ჩვენ ვართ', 'чвэн варт', 'мы есть (мы)'],
+      ['თქვენ ხართ', 'тквэн харт', 'вы есть (вы)'],
+      ['ისინი არიან', 'исини ариан', 'они есть (они)'],
+      ['ეს კაფეა', "эс к'апэа", 'это кафе'],
+      ['ეს ბათუმია', 'эс батумиа', 'это Батуми']
+    ],
+    drills: [
+      { q: 'Я есть → მე ___', o: ['ვარ', 'ხარ', 'არის', 'ვართ'], g: 1, w: 'ვარ — форма для «я»: მე ვარ.' },
+      { q: 'Ты есть → შენ ___', o: ['ხარ', 'ვარ', 'არის', 'ხართ'], g: 1, w: 'ხარ — форма для «ты»: შენ ხარ.' },
+      { q: 'Он / она есть → ის ___', o: ['არის', 'ხარ', 'არიან', 'ვარ'], g: 1, w: 'არის — для «он/она»: ის არის.' },
+      { q: 'Мы есть → ჩვენ ___', o: ['ვართ', 'ვარ', 'ხართ', 'არიან'], g: 1, w: 'ვართ — для «мы»: ჩვენ ვართ.' },
+      { q: 'Они есть → ისინი ___', o: ['არიან', 'არის', 'ვართ', 'ხართ'], g: 1, w: 'არიან — для «они»: ისინი არიან.' },
+      { q: 'Что значит ის?', o: ['он или она', 'только он', 'это', 'они'], w: 'Рода нет: ის — и «он», и «она».' },
+      { q: '«Это кафе» по-грузински:', o: ['ეს კაფეა', 'მე კაფე ვარ', 'ის კაფეები', 'ეს კაფეში'], g: 1, w: '-ა в конце — короткое «есть»: ეს კაფეა.' }
+    ]
+  },
+  { n: 12, name: '«В», «на» и много', kind: 'grammar',
+    lesson: `<p><b>«В» — окончание -ში.</b> Предлогов нет — окончание приклеивается к слову. Если слово кончается на -ი, она отпадает: ბათუმი → ბათუმ<b>ში</b> (в Батуми), სახლი → სახლ<b>ში</b> (дома). На -ა — ничего не отпадает: მაღაზია → მაღაზია<b>ში</b> (в магазине).</p>
+<p><b>«На» — окончание -ზე:</b> პლაჟი → პლაჟ<b>ზე</b> (на пляже), მაგიდა → მაგიდა<b>ზე</b> (на столе).</p>
+<p><b>Много — -ები.</b> Конечная -ი или -ა отпадает, добавляется -ები: ვაშლი → ვაშლ<b>ები</b> (яблоки), ქალაქი → ქალაქ<b>ები</b> (города).</p>
+<p><b>После числа — единственное число:</b> ორი ვაშლი — два яблока (не «яблоки»).</p>`,
+    items: [
+      ['ბათუმში', 'батумши', 'в Батуми'],
+      ['სახლში', 'сахлши', 'дома, в доме'],
+      ['მაღაზიაში', 'магхазиаши', 'в магазине'],
+      ['პლაჟზე', "п'лажзэ", 'на пляже'],
+      ['მაგიდაზე', 'магидазэ', 'на столе'],
+      ['ვაშლები', 'вашлэби', 'яблоки'],
+      ['ქალაქები', 'калакэби', 'города'],
+      ['ორი ვაშლი', 'ори вашли', 'два яблока']
+    ],
+    drills: [
+      { q: 'В Тбилиси →', o: ['თბილისში', 'თბილისიში', 'თბილისზე', 'თბილისები'], g: 1, w: '-ი отпадает, добавляется -ში: თბილისი → თბილისში.' },
+      { q: 'В магазине →', o: ['მაღაზიაში', 'მაღაზიში', 'მაღაზიაზე', 'მაღაზიები'], g: 1, w: 'Слово на -ა: просто добавь -ში — მაღაზიაში.' },
+      { q: 'На пляже →', o: ['პლაჟზე', 'პლაჟში', 'პლაჟიზე', 'პლაჟები'], g: 1, w: '«На» — -ზე: პლაჟზე.' },
+      { q: 'Яблоки (много) →', o: ['ვაშლები', 'ვაშლიები', 'ვაშლში', 'ვაშლის'], g: 1, w: '-ი отпадает, + -ები: ვაშლები.' },
+      { q: 'Три хлеба →', o: ['სამი პური', 'სამი პურები', 'სამი პურში', 'პურები სამი'], g: 1, w: 'После числа — единственное число: სამი პური.' },
+      { q: 'Что значит სახლში?', o: ['дома', 'дом', 'дома (много домов)', 'на доме'], w: 'სახლი — дом, -ში — «в»: სახლში — в доме, дома.' }
+    ]
+  },
+  { n: 13, name: 'Хочу, есть, не', kind: 'grammar',
+    lesson: `<p><b>Хочу — მინდა.</b> ყავა მინდა — хочу кофе. Порядок свободный: можно и მინდა ყავა.</p>
+<p><b>«Не» — არ</b> ставится перед глаголом: <b>არ</b> მინდა — не хочу, <b>არ</b> მესმის — не понимаю.</p>
+<p><b>«Ты хочешь?» — გინდა?</b> Первая буква меняется: მ- — мне, გ- — тебе. Так же: მაქვს — у меня есть, გაქვს — у тебя есть.</p>
+<p><b>Люблю — მიყვარს:</b> მიყვარს ბათუმი — люблю Батуми.</p>
+<p><b>Да / нет:</b> კი (или დიახ — вежливо) / არა.</p>`,
+    items: [
+      ['ყავა მინდა', 'къава минда', 'хочу кофе'],
+      ['არ მინდა', 'ар минда', 'не хочу'],
+      ['გინდა?', 'гинда?', 'хочешь?'],
+      ['მაქვს', 'маквс', 'у меня есть'],
+      ['არ მაქვს', 'ар маквс', 'у меня нет'],
+      ['მიყვარს ბათუმი', 'микъварс батуми', 'я люблю Батуми'],
+      ['არ მესმის', 'ар мэсмис', 'не понимаю'],
+      ['ქართული არ ვიცი', 'картули ар вици', 'не знаю грузинский']
+    ],
+    drills: [
+      { q: 'Не хочу →', o: ['არ მინდა', 'არა მინდა', 'მინდა არ', 'არ მაქვს'], g: 1, w: 'არ — перед глаголом: არ მინდა. არა — это отдельное «нет».' },
+      { q: 'У меня есть →', o: ['მაქვს', 'გაქვს', 'მინდა', 'ვარ'], g: 1, w: 'მ- — «у меня»: მაქვს. გაქვს — «у тебя».' },
+      { q: 'Хочешь чай? →', o: ['ჩაი გინდა?', 'ჩაი მინდა?', 'ჩაი გაქვს?', 'ჩაი ხარ?'], g: 1, w: 'გ- — «тебе»: გინდა — хочешь.' },
+      { q: 'Что значит არ მესმის?', o: ['не понимаю', 'не хочу', 'не знаю грузинский', 'у меня нет'], w: 'მესმის — понимаю, с არ — не понимаю.' },
+      { q: 'Я люблю →', o: ['მიყვარს', 'მინდა', 'მაქვს', 'მესმის'], g: 1, w: 'მიყვარს — люблю. მინდა — хочу.' },
+      { q: 'Да (вежливо) →', o: ['დიახ', 'არა', 'კი არა', 'არ'], g: 1, w: 'დიახ — вежливое «да», კი — обычное.' }
+    ]
+  },
+  { n: 14, name: 'Вопросы и вежливость', kind: 'grammar',
+    lesson: `<p><b>Вопросительные слова:</b> რა — что, ვინ — кто, სად — где, როდის — когда, რამდენი — сколько, რატომ — почему, როგორ — как.</p>
+<p><b>Вопрос — интонацией</b>, порядок слов не меняется: სად არის აფთიაქი? — где аптека?</p>
+<p><b>Самое нужное в магазине:</b> რა ღირს? — сколько стоит? (ღირს — «стоит»).</p>
+<p><b>Вежливость:</b> გთხოვთ — пожалуйста, მადლობა — спасибо, ბოდიში — извините. «…, თუ შეიძლება» — «…, если можно»: ანგარიში, თუ შეიძლება — счёт, пожалуйста.</p>`,
+    items: [
+      ['რა ღირს?', 'ра гхирс?', 'сколько стоит?'],
+      ['სად არის?', 'сад арис?', 'где находится?'],
+      ['როგორ ხარ?', 'рогор хар?', 'как ты?'],
+      ['კარგად', "к'аргад", 'хорошо'],
+      ['გთხოვთ', 'гтховт', 'пожалуйста'],
+      ['ბოდიში', 'бодиши', 'извините'],
+      ['ანგარიში, თუ შეიძლება', 'ангариши, ту шэидзлэба', 'счёт, пожалуйста'],
+      ['ნელა, თუ შეიძლება', 'нэла, ту шэидзлэба', 'помедленнее, пожалуйста']
+    ],
+    drills: [
+      { q: 'Где? →', o: ['სად', 'რა', 'ვინ', 'როდის'], g: 1, w: 'სად — где. რა — что, ვინ — кто, როდის — когда.' },
+      { q: 'Кто? →', o: ['ვინ', 'სად', 'რატომ', 'რა'], g: 1, w: 'ვინ — кто.' },
+      { q: 'Когда? →', o: ['როდის', 'როგორ', 'რამდენი', 'სად'], g: 1, w: 'როდის — когда. როგორ — как.' },
+      { q: 'Сколько стоит? →', o: ['რა ღირს?', 'სად არის?', 'როგორ ხარ?', 'რა გინდა?'], g: 1, w: 'ღირს — стоит: რა ღირს?' },
+      { q: 'Что значит ბოდიში?', o: ['извините', 'спасибо', 'пожалуйста', 'до свидания'], w: 'ბოდიში — извините. მადლობა — спасибо.' },
+      { q: 'Счёт, пожалуйста →', o: ['ანგარიში, თუ შეიძლება', 'მენიუ, თუ შეიძლება', 'ნელა, თუ შეიძლება', 'ანგარიში არ მინდა'], g: 1, w: 'ანგარიში — счёт, თუ შეიძლება — «если можно».' }
+    ]
+  }
+];
+
+const IS_APP = true;
+const APP_VER = '1.5', BUILD = '21.10.2026';
 const CHANGES = [
+  ['1.5', ['Синхронизация прогресса между телефоном и планшетом', 'Новые уровни после алфавита: вывески, продукты из Glovo и Wolt, кафе, город', 'Основы грамматики: «быть», «в / на», «хочу / есть / не», вопросы и вежливые фразы', 'Звуки правильного и неправильного ответа', 'Озвучка букв теперь только по кнопке (можно включить автоматическую в настройках)', 'Ассоциации дополнены приёмами, которыми пользуются люди: арки Макдональдса, перевёрнутая Ч, знак лари', 'Вёрстка под планшет']],
   ['1.4', ['Озвучка прямо в приложении: кнопка воспроизведения у каждой буквы и слова, работает без интернета', 'Переработаны ассоциации — сверены с формой букв, добавлены отличия от похожих букв', 'Номер версии и список изменений']],
   ['1.3', ['Тёмная тема', 'Подписи к похожим звукам: «с выдохом», «сжатый», «глубокий»', 'Приложение обновляется само']],
   ['1.2', ['Путь из 6 уровней, готовность и экзамены вместо дней']]
@@ -458,23 +666,31 @@ const PAIR = { 'თ': ['ტ'], 'ტ': ['თ'], 'ქ': ['კ', 'ყ'], 'კ': ['�
 const GROUPS = ['ვკპჰ','ბნწ','მშძქ','ოთლღრ','ეუჟ','თტ','ქკ','ფპ','ცწ','ჩჭ','კყ','ხჰ','ლღ'];
 function kin(g) { const s = new Set(); GROUPS.forEach(gr => { if (gr.indexOf(g) >= 0) Array.from(gr).forEach(c => { if (c !== g) s.add(c); }); }); return Array.from(s); }
 
-const LEVELS = [
-  { n: 1, name: 'Гласные и первые согласные' },
+const ALPHA = [
+  { n: 1, group: 'Алфавит', name: 'Гласные и первые согласные' },
   { n: 2, name: 'Простые согласные' },
   { n: 3, name: 'Звуки с выдохом' },
   { n: 4, name: 'Сжатые звуки' },
   { n: 5, name: 'Последние буквы' },
   { n: 6, name: 'Финал: весь алфавит' }
 ];
+const ALPHA_LAST = ALPHA.length;
+const LEVELS = ALPHA.map(l => Object.assign({ kind: 'letters' }, l)).concat(VOC);
 const LAST = LEVELS.length;
-function levelLetters(n) { return n === LAST ? L : L.filter(x => x.d === n); }
+const ITEMS = [];
+VOC.forEach(l => l.items.forEach(a => ITEMS.push({ id: 'w:' + a[0], ka: a[0], t: a[1], m: a[2], lv: l.n })));
+const ITEM_BY = {}; ITEMS.forEach(it => { ITEM_BY[it.id] = it; });
+function isWordLevel(n) { return typeof n === 'number' && n > ALPHA_LAST; }
+function levelLetters(n) { return n === ALPHA_LAST ? L : L.filter(x => x.d === n); }
+function levelItems(n) { return ITEMS.filter(it => it.lv === n); }
+function levelKeys(n) { return isWordLevel(n) ? levelItems(n).map(it => it.id) : levelLetters(n).map(x => x.g); }
 
 /* ---------- state & storage ---------- */
 const KEY = 'mkhedruli-cards-v2', OLDKEY = 'mkhedruli-cards-v1';
 const MIN = 60e3, HOUR = 60 * MIN, DAY = 24 * HOUR;
 const IV = [0, 2 * MIN, 30 * MIN, DAY, 3 * DAY, 7 * DAY];   // wait after reaching step n
 const LEARNED = 3;
-function fresh() { return { v: 3, autoplay: true, cards: {}, scope: 1, mode: 'flash', goal: 40, days: {}, total: 0, correct: 0, best: 0, blitzBest: 0, trace: true, passed: {}, exams: {}, readyShown: {} }; }
+function fresh() { return { v: 4, autoplay: false, sfx: true, wmode: 'wflash', cards: {}, scope: 1, mode: 'flash', goal: 40, days: {}, total: 0, correct: 0, best: 0, blitzBest: 0, trace: true, passed: {}, exams: {}, readyShown: {} }; }
 let st = fresh();
 function load() {
   try {
@@ -490,6 +706,7 @@ function load() {
 }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
 load();
+if ((st.v || 0) < 4) { st.autoplay = false; st.sfx = true; st.v = 4; save(); }
 ['cards', 'days', 'passed', 'exams', 'readyShown'].forEach(k => { if (!st[k] || typeof st[k] !== 'object') st[k] = {}; });
 
 const card = g => st.cards[g] || { b: 0, due: 0, seen: 0, ok: 0 };
@@ -505,25 +722,28 @@ function unlocked(n) { return n <= 1 || !!st.passed[n - 1]; }
 function currentLevel() { for (let n = 1; n <= LAST; n++) if (!st.passed[n]) return n; return LAST; }
 function allDone() { return !!st.passed[LAST]; }
 function maxUnlocked() { let m = 1; for (let n = 2; n <= LAST; n++) if (unlocked(n)) m = n; return m; }
-function knownLetters() { const m = maxUnlocked(); return m === LAST ? L : L.filter(x => x.d <= m); }
-function readyStep(n) { return n === LAST ? 3 : 2; }
+function knownLetters() { const m = maxUnlocked(); return m >= ALPHA_LAST ? L : L.filter(x => x.d <= m); }
+function readyStep(n) { return n === ALPHA_LAST ? 3 : 2; }
 function readiness(n) {
-  const ls = levelLetters(n), rs = readyStep(n);
-  const done = ls.filter(x => box(x.g) >= rs).length;
-  return { done: done, total: ls.length, ready: done === ls.length };
+  const ks = levelKeys(n), rs = readyStep(n);
+  const done = ks.filter(k => box(k) >= rs).length;
+  return { done: done, total: ks.length, ready: done === ks.length };
 }
 function stars(n) {
   if (!st.passed[n]) return 0;
-  const ls = levelLetters(n); let s = 1;
-  if (ls.every(x => box(x.g) >= 3)) s++;
-  if (ls.every(x => box(x.g) >= 5)) s++;
+  const ks = levelKeys(n); let s = 1;
+  if (ks.every(k => box(k) >= 3)) s++;
+  if (ks.every(k => box(k) >= 5)) s++;
   return s;
 }
+function dueItems() { return ITEMS.filter(it => unlocked(it.lv) && isDue(it.id)); }
+function isWordScope() { return st.scope === 'wdue' || isWordLevel(st.scope); }
 (function normalize() {
   const s = st.scope;
-  const ok = s === 'due' || s === 'hard' || (typeof s === 'number' && s >= 1 && s <= LAST && unlocked(s));
+  const ok = s === 'due' || s === 'hard' || s === 'wdue' || (typeof s === 'number' && s >= 1 && s <= LAST && unlocked(s));
   if (!ok) st.scope = currentLevel();
   if (['flash', 'l2s', 's2l', 'words', 'trace'].indexOf(st.mode) < 0) st.mode = 'flash';
+  if (['wflash', 'wread', 'wmean', 'wlisten', 'glesson', 'gdrill'].indexOf(st.wmode) < 0) st.wmode = 'wflash';
 })();
 
 /* ---------- helpers ---------- */
@@ -556,6 +776,32 @@ function say(t, btn) {
   } catch (e) {}
 }
 function autoSay(t) { if (st.autoplay) say(t); }
+/* answer sounds: short synthesized chimes, no files needed */
+let actx = null;
+function ac() {
+  try {
+    if (!actx) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; actx = new C(); }
+    if (actx.state === 'suspended') actx.resume();
+  } catch (e) { return null; }
+  return actx;
+}
+['touchend', 'click'].forEach(ev => document.addEventListener(ev, () => { if (st.sfx) ac(); }, { passive: true }));
+function tone(f, at, dur, type, vol, glideTo) {
+  const c = ac(); if (!c) return;
+  const t0 = c.currentTime + at, o = c.createOscillator(), g = c.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t0);
+  if (glideTo) o.frequency.exponentialRampToValueAtTime(glideTo, t0 + dur);
+  g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0 + dur + 0.05);
+}
+function sfx(kind) {
+  if (!st.sfx) return;
+  try {
+    if (kind === 'ok') { tone(784, 0, 0.13, 'triangle', 0.22); tone(1175, 0.09, 0.26, 'triangle', 0.2); }
+    else if (kind === 'no') { tone(233, 0, 0.18, 'sawtooth', 0.06, 196); tone(185, 0.16, 0.28, 'sawtooth', 0.06, 147); }
+    else if (kind === 'win') { [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, i * 0.11, 0.28, 'triangle', 0.18)); tone(1318.5, 0.48, 0.5, 'sine', 0.14); }
+  } catch (e) {}
+}
 function playBtn(t, label, cls) { return AUDIO[t] ? `<button type="button" class="play${cls ? ' ' + cls : ''}" data-say="${t}" aria-label="Послушать ${t}">${PLAY_SVG}${label || ''}</button>` : ''; }
 document.addEventListener('click', e => { const b = e.target.closest ? e.target.closest('[data-say]') : null; if (!b) return; e.preventDefault(); say(b.getAttribute('data-say'), b); });
 function soundLabel(s) { return esc(s) + (SOUND[s] ? `<small>${SOUND[s].tag}</small>` : ''); }
@@ -588,15 +834,19 @@ function show(v) {
 }
 function refresh() { if (view === 'home') renderHome(); else if (view === 'train') renderTrainHeader(); }
 let afterHome = null;   /* hook: the installed app applies a waiting update here */
-function goHome() { stopBlitz(); exam = null; show('home'); renderHome(); if (afterHome) afterHome(); }
+function goHome() { stopBlitz(); exam = null; show('home'); renderHome(); if (afterHome) afterHome(); syncNow(); }
 function openTrain(scope, mode, letter) {
-  stopBlitz(); st.scope = scope; if (mode) st.mode = mode; save();
+  stopBlitz(); st.scope = scope;
+  if (mode) { if (scope === 'wdue' || isWordLevel(scope)) st.wmode = mode; else st.mode = mode; }
+  else if (isWordLevel(scope) && LEVELS[scope - 1].kind === 'grammar' && levelKeys(scope).every(k => isNew(k))) st.wmode = 'glesson';
+  save();
   forced = letter || null; last = null;
   show('train'); renderTrainHeader(); next();
 }
 
 /* ---------- answers ---------- */
 function record(ok, g) {
+  sfx(ok ? 'ok' : 'no');
   st.total++; if (ok) st.correct++;
   st.days[today()] = (st.days[today()] || 0) + 1;
   session.total++;
@@ -612,13 +862,14 @@ function record(ok, g) {
   save();
   checkReady();
   refresh();
+  scheduleSync();
 }
 function checkReady() {
   const n = currentLevel();
   if (view === 'exam' || st.passed[n] || st.readyShown[n]) return;
   if (readiness(n).ready) {
     st.readyShown[n] = true; save();
-    toast(`Уровень ${n}: все буквы закреплены. Ты готов к экзамену!`, 'Сдать', () => startExam(n));
+    toast(`Уровень ${n}: ${isWordLevel(n) ? 'все слова и фразы' : 'все буквы'} закреплены. Ты готов к экзамену!`, 'Сдать', () => startExam(n));
   }
 }
 
@@ -658,14 +909,21 @@ function readyBlock(n) {
   const r = readiness(n);
   return `<div class="ready${r.ready ? ' is-ready' : ''}"><div class="row-sb"><span>${r.ready ? 'Готов к экзамену' : 'Готовность к экзамену'}</span><b>${r.done}/${r.total}</b></div><div class="bar"><i style="width:${r.done / r.total * 100}%"></i></div></div>`;
 }
+function wtile(it, un) {
+  const b = un ? box(it.id) : 0;
+  return `<button class="wtile${un && isDue(it.id) ? ' due' : ''}${un ? '' : ' lock'}" data-item="${it.id}" style="background:var(--box${b});color:${b >= 3 ? 'var(--box-ink-light)' : 'var(--box-ink-dark)'}" aria-label="${it.ka} — ${esc(it.m)}">${it.ka}</button>`;
+}
 function levelRow(l) {
   const n = l.n, un = unlocked(n), passed = !!st.passed[n], cur = un && !passed;
   const cls = passed ? 'passed' : cur ? 'current' : 'locked';
   const node = passed ? CHECK_SVG : un ? String(n) : LOCK_SVG;
   let body;
-  if (n === LAST) {
+  if (n === ALPHA_LAST) {
     const learned = L.filter(x => box(x.g) >= LEARNED).length;
     body = `<div class="final-note">Все 33 буквы вперемешку и чтение слов.${un ? ` Выучено ${learned} из 33.` : ''}</div>`;
+  } else if (isWordLevel(n)) {
+    const its = levelItems(n), show = its.slice(0, 7);
+    body = `<div class="wtiles">${show.map(it => wtile(it, un)).join('')}${its.length > show.length ? `<span class="more">+${its.length - show.length}</span>` : ''}</div>`;
   } else body = `<div class="tiles">${levelLetters(n).map(x => tile(x, un)).join('')}</div>`;
   let extra;
   if (cur) {
@@ -675,22 +933,25 @@ function levelRow(l) {
     const e = st.exams[n];
     extra = `<div class="lvl-meta">Экзамен сдан${e && e.best ? ` на ${e.best}%` : ''} · <button class="link" data-train="${n}">тренировать</button> · <button class="link" data-exam="${n}">пересдать</button></div>`;
   } else extra = `<div class="lvl-meta">Откроется после экзамена уровня ${n - 1}</div>`;
-  return `<div class="lvl ${cls}"><div class="node">${node}</div><div class="lvl-body"><div class="lvl-top"><span class="lvl-name"><b>Уровень ${n}</b> · ${esc(l.name)}</span>${passed ? starsHTML(stars(n)) : ''}</div>${body}${extra}</div></div>`;
+  return (l.group ? `<div class="path-group">${esc(l.group)}</div>` : '') + `<div class="lvl ${cls}"><div class="node">${node}</div><div class="lvl-body"><div class="lvl-top"><span class="lvl-name"><b>Уровень ${n}</b> · ${esc(l.name)}</span>${passed ? starsHTML(stars(n)) : ''}</div>${body}${extra}</div></div>`;
 }
 function renderHome() {
-  const learned = L.filter(x => box(x.g) >= LEARNED).length;
-  const due = knownLetters().filter(x => isDue(x.g)).length;
+  const wordsPhase = !!st.passed[ALPHA_LAST];
+  const learned = wordsPhase ? ITEMS.filter(it => box(it.id) >= LEARNED).length : L.filter(x => box(x.g) >= LEARNED).length;
+  const ringTotal = wordsPhase ? ITEMS.length : 33;
+  const dueL = knownLetters().filter(x => isDue(x.g)).length, dueW = dueItems().length, due = dueL + dueW;
   const cur = currentLevel(), done = allDone(), r = readiness(cur);
   const totalStars = LEVELS.reduce((a, l) => a + stars(l.n), 0);
   const t = st.days[today()] || 0, ds = dayStreak();
-  const C = 2 * Math.PI * 44, off = C * (1 - learned / 33);
+  const C = 2 * Math.PI * 44, off = C * (1 - learned / ringTotal);
   let sub, subCls = '';
-  if (done) sub = 'Весь алфавит пройден. Поддерживай буквы повторением.';
-  else if (r.ready) { sub = 'Все буквы закреплены — пора на экзамен'; subCls = ' ready'; }
-  else sub = `Закреплено ${r.done} из ${r.total} ${plural(r.total, 'буквы', 'букв', 'букв')} уровня`;
+  const unitOf = isWordLevel(cur) ? ['слова и фразы', 'слов и фраз', 'слов и фраз'] : ['буквы', 'букв', 'букв'];
+  if (done) sub = 'Весь путь пройден. Поддерживай слова и буквы повторением.';
+  else if (r.ready) { sub = (isWordLevel(cur) ? 'Все слова закреплены' : 'Все буквы закреплены') + ' — пора на экзамен'; subCls = ' ready'; }
+  else sub = `Закреплено ${r.done} из ${r.total} ${plural(r.total, unitOf[0], unitOf[1], unitOf[2])} уровня`;
   let btns = '';
-  if (due) btns += `<button class="btn warn" id="hDue">Повторить ${due} ${plural(due, 'букву', 'буквы', 'букв')}</button>`;
-  if (done) btns += `<button class="btn primary" id="hGo">Тренировать весь алфавит</button>`;
+  if (due) btns += `<button class="btn warn" id="hDue">Повторить: ${due}</button>`;
+  if (done) btns += `<button class="btn primary" id="hGo">Тренировать</button>`;
   else if (r.ready) btns += `<button class="btn primary" id="hExam">Сдать экзамен уровня ${cur}</button>`;
   else btns += `<button class="btn primary" id="hGo">${st.total ? 'Продолжить' : 'Начать'} уровень ${cur}</button>`;
   const acc = st.total ? Math.round(st.correct / st.total * 100) + '%' : '—';
@@ -700,7 +961,7 @@ function renderHome() {
       <div class="hero-top">
         <div class="ring-wrap">
           <svg class="ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="bg" cx="50" cy="50" r="44"/><circle class="fg" cx="50" cy="50" r="44" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 50 50)"/></svg>
-          <div class="ring-num"><b>${learned}</b><span>из 33 букв</span></div>
+          <div class="ring-num"><b>${learned}</b><span>из ${ringTotal} ${wordsPhase ? 'слов' : 'букв'}</span></div>
         </div>
         <div>
           <div class="eyebrow">${done ? 'Путь пройден' : `Уровень ${cur} из ${LAST}`}</div>
@@ -712,7 +973,6 @@ function renderHome() {
       <div class="goal"><div class="row-sb"><span>Сегодня: <b>${t}</b> из ${st.goal} ответов</span><span>${t >= st.goal ? 'цель выполнена' : 'осталось ' + (st.goal - t)}</span></div><div class="bar"><i style="width:${Math.min(100, t / st.goal * 100)}%"></i></div></div>
       <div class="hero-btns">${btns}</div>
     </section>
-    <div class="path-title">Путь</div>
     <section class="path" aria-label="Уровни">${LEVELS.map(levelRow).join('')}</section>
     <section class="kpis" aria-label="Статистика">
       <div class="kpi"><b>${acc}</b><span>точность за всё время</span></div>
@@ -721,15 +981,20 @@ function renderHome() {
       <div class="kpi"><b>${st.blitzBest}</b><span>рекорд блица</span></div>
     </section>`;
   $('themeBtn').onclick = () => { setTheme(THEME_NEXT[theme]); toast('Тема: ' + THEME_NAME[theme]); };
-  if ($('hDue')) $('hDue').onclick = () => openTrain('due', st.mode === 'words' || st.mode === 'trace' ? 'flash' : null);
+  if ($('hDue')) $('hDue').onclick = () => dueL ? openTrain('due', st.mode === 'words' || st.mode === 'trace' || st.mode === 'blitz' ? 'flash' : null) : openTrain('wdue', 'wflash');
   if ($('hGo')) $('hGo').onclick = () => openTrain(cur);
   if ($('hExam')) $('hExam').onclick = () => startExam(cur);
 }
 $('homeDyn').addEventListener('click', e => {
-  const t = e.target.closest ? e.target.closest('[data-train],[data-exam],[data-letter]') : null;
+  const t = e.target.closest ? e.target.closest('[data-train],[data-exam],[data-letter],[data-item]') : null;
   if (!t) return;
   if (t.dataset.train) return openTrain(+t.dataset.train);
   if (t.dataset.exam) return startExam(+t.dataset.exam);
+  if (t.dataset.item) {
+    const it = ITEM_BY[t.dataset.item];
+    if (!unlocked(it.lv)) return toast(`Это слово из уровня ${it.lv}. Откроется после экзамена уровня ${it.lv - 1}.`);
+    return openTrain(it.lv, 'wflash', it.id);
+  }
   const x = BY[t.dataset.letter];
   if (!unlocked(x.d)) return toast(`Буква ${x.g} из уровня ${x.d}. Откроется после экзамена уровня ${x.d - 1}.`);
   openTrain(x.d, 'flash', x.g);
@@ -739,21 +1004,30 @@ $('homeDyn').addEventListener('click', e => {
 function scopeTitle() {
   if (st.scope === 'due') return 'Повторение';
   if (st.scope === 'hard') return 'Трудные буквы';
+  if (st.scope === 'wdue') return 'Повторение слов';
   return `Уровень ${st.scope} · ${LEVELS[st.scope - 1].name}`;
 }
 function readyHint(n) {
   const rs = readyStep(n);
+  if (isWordLevel(n)) {
+    const ks = levelKeys(n).filter(k => box(k) < rs); if (!ks.length) return '';
+    const now = Date.now(), wt = ks.filter(k => !isNew(k) && card(k).due > now);
+    let s = `Осталось закрепить: ${ks.length} ${plural(ks.length, 'слово', 'слова', 'слов')}.`;
+    if (wt.length === ks.length) s += ` Следующее можно закрепить ${waitText(Math.min.apply(null, wt.map(k => card(k).due)) - now).replace('повтор ', '')} — пока тренируйся свободно.`;
+    else s += ' Слово закрепляется, когда ты вспомнил его второй раз после паузы.';
+    return s;
+  }
   const left = levelLetters(n).filter(x => box(x.g) < rs);
   if (!left.length) return '';
   const now = Date.now();
   const waiting = left.filter(x => !isNew(x.g) && card(x.g).due > now);
-  let s = n === LAST
+  let s = n === ALPHA_LAST
     ? `Ещё не закреплены на следующий день: ${left.length} ${plural(left.length, 'буква', 'буквы', 'букв')}.`
     : `Осталось закрепить: <span class="gl">${left.map(x => x.g).join(' ')}</span>.`;
   if (waiting.length === left.length) {
     const soon = Math.min.apply(null, waiting.map(x => card(x.g).due)) - now;
     s += ` Следующую можно закрепить ${waitText(soon).replace('повтор ', '')} — пока тренируйся свободно.`;
-  } else s += n === LAST ? ' Буква закрепляется, когда ты вспомнил её на следующий день.' : ' Буква закрепляется, когда ты вспомнил её второй раз после паузы.';
+  } else s += n === ALPHA_LAST ? ' Буква закрепляется, когда ты вспомнил её на следующий день.' : ' Буква закрепляется, когда ты вспомнил её второй раз после паузы.';
   return s;
 }
 function renderTrainHeader() {
@@ -765,26 +1039,32 @@ function renderTrainHeader() {
     if (r.ready) $('rbExam').onclick = () => startExam(s);
   } else if (typeof s === 'number') {
     const k = stars(s);
-    const tip = k === 1 ? 'Вторая звезда — когда все буквы уровня вспоминаются на следующий день.' : k === 2 ? 'Третья звезда — когда буквы держатся неделю.' : 'Уровень освоен полностью.';
+    const what = isWordLevel(s) ? 'слова' : 'буквы';
+    const tip = k === 1 ? `Вторая звезда — когда все ${what} уровня вспоминаются на следующий день.` : k === 2 ? `Третья звезда — когда ${what} держатся неделю.` : 'Уровень освоен полностью.';
     rb.innerHTML = `<div class="readybox"><div class="row-sb"><span>Экзамен сдан</span>${starsHTML(k)}</div><div class="ready-hint" style="margin-top:4px">${tip}</div></div>`;
   } else {
-    const n = poolFor(s).length;
-    rb.innerHTML = `<div class="readybox"><div class="row-sb"><span>${s === 'due' ? 'Осталось повторить' : 'Трудных букв'}</span><b>${n}</b></div></div>`;
+    const n = s === 'wdue' ? dueItems().length : poolFor(s).length;
+    rb.innerHTML = `<div class="readybox"><div class="row-sb"><span>${s === 'hard' ? 'Трудных букв' : 'Осталось повторить'}</span><b>${n}</b></div></div>`;
   }
-  document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t.dataset.mode === st.mode ? 'true' : 'false'));
+  const tabs = isWordScope() ? wordModes() : LETTER_TABS, curm = isWordScope() ? st.wmode : st.mode;
+  $('tabs').className = 'tabs' + (tabs.length === 4 ? ' four' : '');
+  $('tabs').innerHTML = tabs.map(t => `<button class="tab" role="tab" data-mode="${t[0]}" aria-selected="${t[0] === curm ? 'true' : 'false'}">${t[1]}</button>`).join('');
 }
+const LETTER_TABS = [['flash', 'Карточки'], ['l2s', 'Буква → звук'], ['s2l', 'Звук → буква'], ['words', 'Слова'], ['trace', 'Прописи'], ['blitz', 'Блиц 60 сек']];
+const WORD_TABS = [['wflash', 'Карточки'], ['wread', 'Прочитай'], ['wmean', 'Значение'], ['wlisten', 'На слух']];
+const GRAMMAR_TABS = [['glesson', 'Урок'], ['gdrill', 'Упражнения'], ['wflash', 'Фразы'], ['wmean', 'Значение'], ['wlisten', 'На слух'], ['wread', 'Прочитай']];
 $('backBtn').onclick = goHome;
-function setMode(m) { stopBlitz(); st.mode = m; save(); renderTrainHeader(); next(); }
-document.querySelectorAll('.tab').forEach(t => t.onclick = () => setMode(t.dataset.mode));
+function setMode(m) { stopBlitz(); if (isWordScope()) st.wmode = m; else st.mode = m; save(); renderTrainHeader(); next(); }
+$('tabs').addEventListener('click', e => { const t = e.target.closest ? e.target.closest('.tab') : null; if (t) setMode(t.dataset.mode); });
 
 function poolFor(s) {
   if (s === 'due') return knownLetters().filter(x => isDue(x.g));
   if (s === 'hard') return hard();
   const base = levelLetters(s);
-  if (s === LAST) return base;
+  if (s === ALPHA_LAST) return base;
   return base.concat(L.filter(x => x.d < s && isDue(x.g)));
 }
-function wordPool() { const m = typeof st.scope === 'number' ? st.scope : maxUnlocked(); return WORDS.filter(w => w.d <= m); }
+function wordPool() { const m = typeof st.scope === 'number' ? Math.min(st.scope, 5) : 5; return WORDS.filter(w => w.d <= m); }
 function pickLetter() {
   if (forced) { const f = forced; forced = null; return BY[f]; }
   const pool = poolFor(st.scope);
@@ -813,11 +1093,12 @@ function wordOptions(w, pool) {
 
 function statsLine() { return `<div class="stats"><span>Сейчас: <b>${session.right}</b> из ${session.total}</span><span>Серия: <b>${session.streak}</b></span></div>`; }
 function emptyState() {
-  const msg = st.scope === 'due' ? 'Все повторения сделаны. Новые появятся по расписанию.' : st.scope === 'hard' ? 'Трудных букв не осталось.' : 'Здесь пока нет букв.';
+  const msg = (st.scope === 'due' || st.scope === 'wdue') ? 'Все повторения сделаны. Новые появятся по расписанию.' : st.scope === 'hard' ? 'Трудных букв не осталось.' : 'Здесь пока ничего нет.';
   $('stage').innerHTML = `<div class="empty">${msg}<div style="margin-top:12px"><button class="btn primary sm" id="emHome">К пути</button></div></div>`;
   $('emHome').onclick = goHome;
 }
 function next() {
+  if (isWordScope()) return wordNext();
   answered = false; qid++;
   const m = st.mode;
   if (m === 'flash') return flash();
@@ -832,6 +1113,111 @@ function statusTag(g) {
   if (c.seen === 0) return '<span class="tag new">новая</span>';
   if (isDue(g)) return '<span class="tag due">пора повторить</span>';
   return '<span class="tag ok">' + waitText(c.due - Date.now()) + '</span>';
+}
+
+/* ---------- words & grammar levels ---------- */
+function curVoc() { return typeof st.scope === 'number' ? LEVELS[st.scope - 1] : null; }
+function wordModes() { const v = curVoc(); return v && v.kind === 'grammar' ? GRAMMAR_TABS : WORD_TABS; }
+function wpool() {
+  if (st.scope === 'wdue') return dueItems();
+  return levelItems(st.scope).concat(ITEMS.filter(it => it.lv < st.scope && isDue(it.id)));
+}
+let lastItem = null;
+function pickItem() {
+  if (forced && ITEM_BY[forced]) { const f = forced; forced = null; return ITEM_BY[f]; }
+  forced = null;
+  const pool = wpool(); if (!pool.length) return null;
+  const items = pool.length > 1 ? pool.filter(x => x.id !== lastItem) : pool;
+  const w = items.map(x => isDue(x.id) ? 12 + (5 - box(x.id)) : isNew(x.id) ? 7 : 1 + (5 - box(x.id)) * 0.6);
+  let r = Math.random() * w.reduce((a, b) => a + b, 0);
+  for (let i = 0; i < items.length; i++) { r -= w[i]; if (r <= 0) return items[i]; }
+  return items[items.length - 1];
+}
+function wopts(it, field) {
+  const seen = new Set([it[field]]), out = [it];
+  shuffle(ITEMS.filter(x => x.lv === it.lv)).concat(shuffle(ITEMS.filter(x => unlocked(x.lv))), shuffle(ITEMS)).forEach(x => { if (out.length < 4 && !seen.has(x[field])) { seen.add(x[field]); out.push(x); } });
+  return shuffle(out);
+}
+function makeQ(q) {
+  if (q.t === 'drill') {
+    const d = q.d, order = shuffle(d.o.map((x, i) => i));
+    return { prompt: `<div class="label">Выбери правильный вариант</div><div class="drill-q">${d.q}</div>`, labels: order.map(i => esc(d.o[i])), cls: d.g ? 'small geo' : 'small', ri: order.indexOf(0), key: null,
+      fb: ok => `<div class="feedback plain ${ok ? 'ok' : 'no'}"><p>${ok ? 'Верно. ' : 'Правильно: <b>' + esc(d.o[0]) + '</b>. '}${d.w}</p></div>` };
+  }
+  const it = q.it; let t = q.t;
+  if (t === 'wlisten' && !AUDIO[it.ka]) t = 'wread';
+  const field = t === 'wread' ? 't' : t === 'wmean' ? 'm' : 'ka';
+  const opts = wopts(it, field);
+  const prompt = t === 'wlisten' ? `<div class="label">Послушай и выбери, что прозвучало</div>${playBtn(it.ka, 'Послушать', 'big')}`
+    : `<div class="label">${t === 'wread' ? 'Прочитай' : 'Что это значит?'}</div><div class="word">${it.ka}</div>`;
+  return { prompt: prompt, labels: opts.map(o => field === 'ka' ? o.ka : esc(o[field])), cls: field === 'ka' ? 'small geo' : 'small', ri: opts.indexOf(it), key: it.id, say: t === 'wlisten' ? it.ka : null,
+    fb: ok => `<div class="feedback plain ${ok ? 'ok' : 'no'}"><p>${ok ? 'Верно!' : 'Правильно:'} <span class="gk">${it.ka}</span> — <b>${esc(it.t)}</b>, «${esc(it.m)}».<br><span style="font-size:.88rem">${wordBreakdown({ w: it.ka })}</span></p></div><div class="plays" style="margin-top:8px">${playBtn(it.ka, 'Послушать')}</div>` };
+}
+function wordNext() {
+  answered = false; qid++;
+  const modes = wordModes().map(x => x[0]);
+  if (modes.indexOf(st.wmode) < 0) st.wmode = modes[0];
+  const m = st.wmode;
+  if (m === 'glesson') return gLesson();
+  if (m === 'gdrill') return gDrill();
+  const it = pickItem(); if (!it) return emptyState(); lastItem = it.id;
+  if (m === 'wflash') return wFlash(it);
+  const q = makeQ({ t: m, it: it });
+  const btns = quizShell(q.prompt, q.labels, q.cls);
+  if (q.say) setTimeout(() => say(q.say), 200);
+  btns.forEach((b, i) => b.onclick = () => {
+    if (answered) return;
+    const ok = i === q.ri;
+    grade(ok, btns, q.ri, i, q.fb(ok), q.key);
+    if (!q.say) autoSay(it.ka);
+  });
+}
+function wFlash(it) {
+  $('stage').innerHTML = `
+    <div class="card" id="card">
+      <div class="card-inner" id="cardInner" role="button" tabindex="0" aria-label="Перевернуть карточку">
+        <div class="face front">
+          <div class="badge">${statusTag(it.id)}<span>ступень ${box(it.id)}/5</span></div>
+          <div class="wglyph">${it.ka}</div>
+          <div class="hint">Прочитай вслух и вспомни значение, потом нажми</div>
+        </div>
+        <div class="face back">
+          <div class="wglyph sm">${it.ka}</div>
+          <div class="sound">${esc(it.t)}</div>
+          <p class="assoc">«${esc(it.m)}»</p>
+          <div class="plays">${playBtn(it.ka, 'Послушать')}</div>
+          <div class="pair">${wordBreakdown({ w: it.ka })}</div>
+        </div>
+      </div>
+    </div>
+    <div class="row" id="actions"><button class="btn primary full" id="flip">Показать ответ</button></div>
+    ${statsLine()}`;
+  const cardEl = $('card');
+  const flip = () => {
+    if (cardEl.classList.contains('flipped')) return;
+    cardEl.classList.add('flipped'); autoSay(it.ka);
+    $('actions').innerHTML = `<button class="btn bad" id="no">Не помню</button><button class="btn good" id="yes">Помню</button>`;
+    $('no').onclick = () => { record(false, it.id); next(); };
+    $('yes').onclick = () => { record(true, it.id); next(); };
+  };
+  $('cardInner').onclick = flip;
+  $('cardInner').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flip(); } };
+  $('flip').onclick = flip;
+}
+function gLesson() {
+  const v = curVoc();
+  $('stage').innerHTML = `<div class="lesson"><div class="label">Урок</div>${v.lesson}
+    <table class="stable">${levelItems(v.n).map(it => `<tr><td style="white-space:nowrap"><span class="gk">${it.ka}</span>${playBtn(it.ka, '', 'mini')}</td><td>${esc(it.t)}<br><span class="muted">${esc(it.m)}</span></td></tr>`).join('')}</table></div>
+    <button class="btn primary" id="toDrill">Перейти к упражнениям</button>`;
+  $('toDrill').onclick = () => setMode('gdrill');
+}
+let lastDrill = -1;
+function gDrill() {
+  const ds = curVoc().drills;
+  let i = Math.floor(Math.random() * ds.length); if (ds.length > 1 && i === lastDrill) i = (i + 1) % ds.length; lastDrill = i;
+  const q = makeQ({ t: 'drill', d: ds[i] });
+  const btns = quizShell(q.prompt, q.labels, q.cls);
+  btns.forEach((b, j) => b.onclick = () => { if (answered) return; grade(j === q.ri, btns, q.ri, j, q.fb(j === q.ri), null); });
 }
 
 function flash() {
@@ -920,7 +1306,7 @@ function s2l() {
     grade(ok, btns, ri, i, feedbackHTML(ok, x) + extra, x.g);
   });
 }
-function wordBreakdown(w) { return Array.from(w.w).map(c => `<span style="font-family:var(--f-glyph)">${c}</span>=${esc(BY[c] ? BY[c].s : c)}`).join(' · '); }
+function wordBreakdown(w) { return Array.from(w.w).filter(c => BY[c]).map(c => `<span style="font-family:var(--f-glyph)">${c}</span>=${esc(BY[c] ? BY[c].s : c)}`).join(' · '); }
 let lastWord = null;
 function words() {
   const pool = wordPool();
@@ -1056,7 +1442,11 @@ function finishBlitz() {
 /* ---------- level exam ---------- */
 function buildExam(n) {
   const qs = [];
-  if (n === LAST) {
+  if (isWordLevel(n)) {
+    shuffle(levelItems(n)).slice(0, 12).forEach((it, i) => qs.push({ t: ['wread', 'wmean', 'wlisten'][i % 3], it: it }));
+    const v = LEVELS[n - 1];
+    if (v.drills) shuffle(v.drills).slice(0, 6).forEach(d => qs.push({ t: 'drill', d: d }));
+  } else if (n === ALPHA_LAST) {
     shuffle(L).slice(0, 14).forEach((x, i) => qs.push({ t: i % 2 ? 's2l' : 'l2s', x: x }));
     shuffle(WORDS).slice(0, 6).forEach(w => qs.push({ t: 'word', w: w }));
   } else {
@@ -1072,14 +1462,14 @@ function startExam(n) {
   exam = buildExam(n);
   show('exam');
   const e = exam, lv = LEVELS[n - 1], r = readiness(n);
-  const parts = n === LAST ? '14 букв в обе стороны и 6 слов' : `каждая буква уровня, ${e.qs.filter(q => q.t === 'word').length} слова${n > 1 ? ' и 3 буквы из прошлых уровней' : ''}`;
+  const parts = isWordLevel(n) ? `чтение, значение и на слух${lv.drills ? ', плюс задания по грамматике' : ''}` : n === ALPHA_LAST ? '14 букв в обе стороны и 6 слов' : `каждая буква уровня, ${e.qs.filter(q => q.t === 'word').length} слова${n > 1 ? ' и 3 буквы из прошлых уровней' : ''}`;
   $('exam').innerHTML = `
     <div class="topbar"><button class="back" id="exQuit">← Путь</button><div class="tt">Экзамен · Уровень ${n}</div></div>
     <div class="prompt">
       <div class="label">Экзамен</div>
       <div class="hero-title">${esc(lv.name)}</div>
       <div class="sub">${e.qs.length} вопросов: ${parts}.<br>Можно ошибиться не больше ${e.allowed} ${plural(e.allowed, 'раза', 'раз', 'раз')}.</div>
-      ${!st.passed[n] && !r.ready ? `<div class="sub" style="color:var(--warn)">Закреплено ${r.done} из ${r.total} букв — можно попробовать раньше, но шанс сдать ниже.</div>` : ''}
+      ${!st.passed[n] && !r.ready ? `<div class="sub" style="color:var(--warn)">Закреплено ${r.done} из ${r.total} — можно попробовать раньше, но шанс сдать ниже.</div>` : ''}
     </div>
     <button class="btn primary" id="exGo">Начать</button>`;
   $('exQuit').onclick = goHome;
@@ -1088,8 +1478,10 @@ function startExam(n) {
 function examQ() {
   const e = exam; if (!e) return;
   const q = e.qs[e.i];
-  let prompt, labels, cls, ri, opts;
-  if (q.t === 'word') {
+  let prompt, labels, cls, ri, opts, mq = null;
+  if (q.it || q.d) {
+    mq = makeQ(q); prompt = mq.prompt; labels = mq.labels; cls = mq.cls; ri = mq.ri;
+  } else if (q.t === 'word') {
     opts = wordOptions(q.w, WORDS.filter(w => w.d <= Math.min(e.n, 5)));
     ri = opts.indexOf(q.w); labels = opts.map(o => esc(o.t)); cls = 'small';
     prompt = `<div class="label">Прочитай слово</div><div class="word">${q.w.w}</div>`;
@@ -1105,15 +1497,16 @@ function examQ() {
     <div class="options">${labels.map((l, i) => `<button class="opt ${cls}" data-i="${i}">${l}</button>`).join('')}</div>
     <div id="exFb"></div>`;
   $('exQuit').onclick = goHome;
+  if (mq && mq.say) setTimeout(() => say(mq.say), 200);
   const btns = Array.from($('exam').querySelectorAll('.opt'));
   btns.forEach((b, i) => b.onclick = () => {
     if (e.locked || exam !== e) return; e.locked = true;
     const ok = i === ri;
     btns.forEach((bb, j) => { bb.disabled = true; if (j === ri) bb.classList.add('right'); else if (j === i) bb.classList.add('wrong'); });
-    record(ok, q.x ? q.x.g : null);
+    record(ok, q.x ? q.x.g : mq ? mq.key : null);
     if (!ok) {
       e.mistakes.push(q);
-      $('exFb').innerHTML = q.x ? feedbackHTML(false, q.x) : `<div class="feedback plain no"><p>Правильно: <b>${esc(q.w.t)}</b> — «${esc(q.w.m)}».</p></div>`;
+      $('exFb').innerHTML = mq ? mq.fb(false) : q.x ? feedbackHTML(false, q.x) : `<div class="feedback plain no"><p>Правильно: <b>${esc(q.w.t)}</b> — «${esc(q.w.m)}».</p></div>`;
     }
     setTimeout(() => {
       if (exam !== e) return;
@@ -1135,14 +1528,18 @@ function examResult(early) {
   if (passed) st.passed[e.n] = true;
   save();
   const missLetters = Array.from(new Set(e.mistakes.filter(q => q.x).map(q => q.x.g)));
-  const details = e.mistakes.map(q => q.x
+  const details = e.mistakes.map(q => q.it
+    ? `<div class="feedback plain no"><p><span class="gk">${q.it.ka}</span> — <b>${esc(q.it.t)}</b>, «${esc(q.it.m)}».</p></div>`
+    : q.d ? `<div class="feedback plain no"><p>${q.d.q} — <b>${esc(q.d.o[0])}</b>. ${q.d.w}</p></div>`
+    : q.x
     ? `<div class="feedback no"><div class="g">${q.x.g}</div><p>${soundText(q.x.s)} — ${q.x.a}</p></div>`
     : `<div class="feedback plain no"><p><span style="font-family:var(--f-glyph);font-size:1.2rem">${q.w.w}</span> — <b>${esc(q.w.t)}</b>, «${esc(q.w.m)}».<br><span style="font-size:.88rem">${wordBreakdown(q.w)}</span></p></div>`).join('');
   let head, unlock = '', btns;
   if (passed) {
     head = `<div class="label">Экзамен сдан</div><div class="big">${pct}%</div><div class="sub">Уровень ${e.n} · ${esc(LEVELS[e.n - 1].name)}</div>${starsHTML(stars(e.n))}`;
-    if (firstPass && e.n < LAST) unlock = `<div class="unlock">Открыт <b>уровень ${e.n + 1}</b>: ${esc(LEVELS[e.n].name)} — <span class="gl">${levelLetters(e.n + 1).map(x => x.g).join(' ')}</span></div>`;
-    else if (firstPass) unlock = `<div class="unlock"><b>Весь алфавит пройден!</b> Теперь поддерживай буквы повторением, чтобы собрать все звёзды.</div>`;
+    if (firstPass && e.n === ALPHA_LAST) unlock = `<div class="unlock"><b>Весь алфавит пройден!</b> Открыта новая часть пути — <b>читаем город</b>: ${esc(LEVELS[e.n].name)}.</div>`;
+    else if (firstPass && e.n < LAST) unlock = `<div class="unlock">Открыт <b>уровень ${e.n + 1}</b>: ${esc(LEVELS[e.n].name)}${isWordLevel(e.n + 1) ? '' : ` — <span class="gl">${levelLetters(e.n + 1).map(x => x.g).join(' ')}</span>`}</div>`;
+    else if (firstPass) unlock = `<div class="unlock"><b>Весь путь пройден!</b> Теперь поддерживай слова повторением, чтобы собрать все звёзды.</div>`;
     btns = e.n < LAST ? `<button class="btn ghost" id="rHome">К пути</button><button class="btn primary" id="rNext">Уровень ${e.n + 1} →</button>` : `<button class="btn primary full" id="rHome">К пути</button>`;
   } else {
     head = `<div class="label">${early ? 'Слишком много ошибок' : 'Почти получилось'}</div><div class="big">${pct}%</div><div class="sub">Можно ошибиться не больше ${e.allowed} ${plural(e.allowed, 'раза', 'раз', 'раз')}. Потренируй буквы ниже и попробуй снова.</div>`;
@@ -1154,11 +1551,12 @@ function examResult(early) {
     ${details ? `<div class="note">${passed ? 'Ошибки, на которые стоит посмотреть:' : 'Где были ошибки:'}</div>${details}` : ''}
     <div class="row">${btns}</div>`;
   $('exQuit').onclick = goHome;
-  if (passed) celebrate();
+  if (passed) { celebrate(); sfx('win'); }
   if ($('rHome')) $('rHome').onclick = goHome;
-  if ($('rNext')) $('rNext').onclick = () => openTrain(e.n + 1, 'flash');
+  if ($('rNext')) $('rNext').onclick = () => openTrain(e.n + 1, isWordLevel(e.n + 1) ? (LEVELS[e.n].kind === 'grammar' ? 'glesson' : 'wflash') : 'flash');
   if ($('rRetry')) $('rRetry').onclick = () => startExam(e.n);
-  if ($('rTrain')) $('rTrain').onclick = () => openTrain(e.n, 'flash', missLetters[0]);
+  const missItem = e.mistakes.filter(q => q.it).map(q => q.it.id)[0];
+  if ($('rTrain')) $('rTrain').onclick = () => isWordLevel(e.n) ? openTrain(e.n, 'wflash', missItem) : openTrain(e.n, 'flash', missLetters[0]);
 }
 
 /* ---------- keyboard ---------- */
@@ -1202,9 +1600,18 @@ function setTheme(t) {
   theme = t; try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
   applyTheme(); renderThemeSet(); if (view === 'home') renderHome();
 }
+function renderSfxSet() {
+  const g = $('sfxset'); g.innerHTML = '';
+  [[true, 'Включены'], [false, 'Выключены']].forEach(o => {
+    const c = document.createElement('button'); c.className = 'chip'; c.textContent = o[1];
+    c.setAttribute('aria-pressed', st.sfx === o[0] ? 'true' : 'false');
+    c.onclick = () => { st.sfx = o[0]; save(); renderSfxSet(); if (o[0]) sfx('ok'); };
+    g.appendChild(c);
+  });
+}
 function renderVoiceSet() {
   const g = $('voiceset'); g.innerHTML = '';
-  [[true, 'Сама при ответе'], [false, 'Только по кнопке']].forEach(o => {
+  [[false, 'Только по кнопке'], [true, 'Сама при ответе']].forEach(o => {
     const c = document.createElement('button'); c.className = 'chip'; c.textContent = o[1];
     c.setAttribute('aria-pressed', st.autoplay === o[0] ? 'true' : 'false');
     c.onclick = () => { st.autoplay = o[0]; save(); renderVoiceSet(); };
@@ -1258,14 +1665,119 @@ $('importBtn').onclick = () => {
 $('resetBtn').onclick = () => {
   const b = $('resetBtn');
   if (b.dataset.armed) {
-    const keep = { mode: st.mode, goal: st.goal, trace: st.trace };
+    const keep = { mode: st.mode, goal: st.goal, trace: st.trace, autoplay: st.autoplay, sfx: st.sfx };
     st = Object.assign(fresh(), keep); save(); session = { right: 0, total: 0, streak: 0 };
-    delete b.dataset.armed; b.textContent = 'Сбросить прогресс'; renderHome(); msg('Прогресс сброшен.', true);
+    delete b.dataset.armed; b.textContent = 'Сбросить прогресс'; renderHome(); msg('Прогресс сброшен на этом устройстве.', true);
   } else {
     b.dataset.armed = '1'; b.textContent = 'Точно стереть всё? Нажми ещё раз';
     setTimeout(() => { if (b.dataset.armed) { delete b.dataset.armed; b.textContent = 'Сбросить прогресс'; } }, 4000);
   }
 };
+
+/* ---------- sync between devices (private GitHub gist) ---------- */
+const SYNC_KEY = 'anbani-sync', GIST_FILE = 'anbani-progress.json';
+let sync = { token: '', gist: '', last: 0, err: '' }, syncing = false, syncTimer = null;
+try { const s0 = JSON.parse(localStorage.getItem(SYNC_KEY) || 'null'); if (s0) sync = Object.assign(sync, s0); } catch (e) {}
+function saveSync() { try { localStorage.setItem(SYNC_KEY, JSON.stringify(sync)); } catch (e) {} }
+function progressPart(s) { return { v: s.v, cards: s.cards, days: s.days, total: s.total, correct: s.correct, best: s.best, blitzBest: s.blitzBest, passed: s.passed, exams: s.exams, readyShown: s.readyShown }; }
+function mergeInto(a, b) {
+  if (!b || typeof b !== 'object') return;
+  Object.keys(b.cards || {}).forEach(k => { const x = a.cards[k], y = b.cards[k]; if (!y) return; if (!x || y.seen > x.seen || (y.seen === x.seen && y.due > x.due)) a.cards[k] = y; });
+  Object.keys(b.days || {}).forEach(k => { a.days[k] = Math.max(a.days[k] || 0, b.days[k] || 0); });
+  ['total', 'correct', 'best', 'blitzBest'].forEach(k => { a[k] = Math.max(a[k] || 0, b[k] || 0); });
+  Object.keys(b.passed || {}).forEach(k => { if (b.passed[k]) a.passed[k] = true; });
+  Object.keys(b.readyShown || {}).forEach(k => { if (b.readyShown[k]) a.readyShown[k] = true; });
+  Object.keys(b.exams || {}).forEach(k => { const x = a.exams[k] || {}, y = b.exams[k] || {}; a.exams[k] = { best: Math.max(x.best || 0, y.best || 0), tries: Math.max(x.tries || 0, y.tries || 0), date: (x.date || '') > (y.date || '') ? x.date : y.date }; });
+}
+function gh(path, opts) {
+  opts = opts || {};
+  opts.headers = { 'Authorization': 'token ' + sync.token, 'Accept': 'application/vnd.github+json' };
+  if (opts.body) opts.headers['Content-Type'] = 'application/json';
+  opts.cache = 'no-store';
+  return fetch('https://api.github.com' + path, opts);
+}
+function findOrCreateGist() {
+  return gh('/gists?per_page=100').then(r => { if (!r.ok) throw r.status; return r.json(); }).then(list => {
+    const g = list.filter(x => x.files && x.files[GIST_FILE])[0];
+    if (g) return g.id;
+    const files = {}; files[GIST_FILE] = { content: JSON.stringify(progressPart(st)) };
+    return gh('/gists', { method: 'POST', body: JSON.stringify({ description: 'Анбани — прогресс', public: false, files: files }) })
+      .then(r => { if (!r.ok) throw r.status; return r.json(); }).then(j => j.id);
+  });
+}
+function syncNow() {
+  if (!IS_APP || !sync.token || syncing || !window.fetch) return Promise.resolve();
+  syncing = true; renderSyncStatus('Синхронизирую…');
+  const getId = sync.gist ? Promise.resolve(sync.gist) : findOrCreateGist();
+  return getId.then(id => {
+    sync.gist = id; saveSync();
+    return gh('/gists/' + id).then(r => {
+      if (r.status === 404) { sync.gist = ''; saveSync(); throw 'gone'; }
+      if (!r.ok) throw r.status; return r.json();
+    });
+  }).then(g => {
+    const f = g.files && g.files[GIST_FILE];
+    if (!f) return null;
+    return f.truncated ? fetch(f.raw_url, { cache: 'no-store' }).then(r => r.text()) : f.content;
+  }).then(txt => {
+    let remote = null; try { remote = txt ? JSON.parse(txt) : null; } catch (e) {}
+    const before = JSON.stringify(progressPart(st));
+    if (remote) mergeInto(st, remote);
+    save();
+    const after = JSON.stringify(progressPart(st));
+    const changedHere = after !== before;
+    const files = {}; files[GIST_FILE] = { content: after };
+    const push = (!remote || after !== JSON.stringify(progressPart(Object.assign(fresh(), remote))))
+      ? gh('/gists/' + sync.gist, { method: 'PATCH', body: JSON.stringify({ files: files }) }).then(r => { if (!r.ok) throw r.status; })
+      : Promise.resolve();
+    return push.then(() => { if (changedHere && !exam && !blitz) refresh(); });
+  }).then(() => {
+    sync.last = Date.now(); sync.err = ''; saveSync(); renderSyncStatus();
+  }).catch(e => {
+    sync.err = e === 401 || e === 403 ? 'Ключ не подошёл или у него нет права «gist». Создай новый ключ.' : e === 'gone' ? 'Файл прогресса пропал — при следующей синхронизации создам новый.' : 'Нет связи с GitHub. Попробую позже.';
+    saveSync(); renderSyncStatus();
+  }).then(() => { syncing = false; });
+}
+function scheduleSync() { if (!IS_APP || !sync.token) return; clearTimeout(syncTimer); syncTimer = setTimeout(syncNow, 15000); }
+function renderSyncStatus(text) {
+  const el = $('syncStatus'); if (!el) return;
+  if (text) { el.className = 'sync-status'; el.textContent = text; return; }
+  if (sync.err) { el.className = 'sync-status no'; el.textContent = sync.err; return; }
+  if (sync.last) { const d = new Date(sync.last); el.className = 'sync-status ok'; el.textContent = 'Синхронизировано в ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); return; }
+  el.className = 'sync-status'; el.textContent = '';
+}
+function renderSync() {
+  const box = $('syncBox');
+  if (!IS_APP) {
+    box.innerHTML = `<div>Синхронизация работает в приложении на сайте <b>stasecc.github.io/Anbani</b>. Здесь можно перенести прогресс вручную через «Код прогресса» в настройках.</div>`;
+    return;
+  }
+  if (sync.token) {
+    box.innerHTML = `<div>Прогресс сохраняется в твоём GitHub и подтягивается на всех устройствах, где введён тот же ключ: при запуске, при возврате в приложение и через 15 секунд после ответа.</div>
+      <div class="sync-status" id="syncStatus"></div>
+      <div class="btns"><button class="sbtn" id="syncGo">Синхронизировать сейчас</button><button class="sbtn danger" id="syncOff">Отключить на этом устройстве</button></div>`;
+    $('syncGo').onclick = () => syncNow();
+    $('syncOff').onclick = () => { sync = { token: '', gist: '', last: 0, err: '' }; saveSync(); renderSync(); };
+    renderSyncStatus();
+    return;
+  }
+  box.innerHTML = `<div>Чтобы продолжать с того же места на планшете, прогресс можно хранить в твоём GitHub (в скрытом файле, видишь его только ты).</div>
+    <ol>
+      <li>Открой <a href="https://github.com/settings/tokens/new?scopes=gist&description=Anbani%20sync" target="_blank" rel="noopener">страницу создания ключа</a>. Галочка «gist» уже стоит. В «Expiration» выбери «No expiration» и нажми «Generate token» внизу.</li>
+      <li>Скопируй ключ (начинается с <b>ghp_</b>) и вставь сюда.</li>
+      <li>На планшете открой приложение и вставь <b>тот же ключ</b> — прогресс подтянется сам.</li>
+    </ol>
+    <input class="tokin" id="tokIn" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ghp_…" aria-label="Ключ GitHub">
+    <div class="btns"><button class="sbtn" id="tokGo">Подключить</button></div>
+    <div class="sync-status" id="syncStatus"></div>`;
+  $('tokGo').onclick = () => {
+    const v = ($('tokIn').value || '').trim();
+    if (v.length < 20) { renderSyncStatus(); $('syncStatus').className = 'sync-status no'; $('syncStatus').textContent = 'Похоже, ключ вставлен не целиком.'; return; }
+    sync = { token: v, gist: '', last: 0, err: '' }; saveSync(); renderSync();
+    syncNow().then(() => { if (!sync.err) toast('Синхронизация включена'); });
+  };
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) syncNow(); });
 
 /* refresh due counters once a minute */
 setInterval(() => { if (!blitz && !exam) refresh(); }, 60e3);
@@ -1276,13 +1788,14 @@ function start(d) {
   const g = soundGuide(); $('guideHome').innerHTML = g; $('guideTrain').innerHTML = g;
   $('ver').textContent = 'Анбани · версия ' + APP_VER + ' · сборка ' + BUILD;
   $('whatsNew').innerHTML = CHANGES.map(c => `<div><b>Версия ${c[0]}</b><ul>${c[1].map(t => `<li>${t}</li>`).join('')}</ul></div>`).join('');
-  renderGoal(); renderThemeSet(); renderVoiceSet(); show('home'); renderHome();
+  renderGoal(); renderThemeSet(); renderVoiceSet(); renderSfxSet(); renderSync(); show('home'); renderHome();
+  setTimeout(syncNow, 800);
 }
 if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(() => ({ session: session }));
 if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude.hot.ready(start); else start((window.claude && window.claude.hot && window.claude.hot.data) || {});
 
 /* PWA: self-update — checks for a new version whenever the app is opened or brought back */
-const APP_VERSION = '20261019224840';
+const APP_VERSION = '20261020224145';
 let pendingUpdate = false, updateToastShown = false;
 function applyUpdateIfIdle() {
   if (!pendingUpdate) return;
